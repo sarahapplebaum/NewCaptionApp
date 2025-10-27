@@ -1,0 +1,31 @@
+# Requirements for NewCaptionApp - Video Captioner
+# Install with: pip install -r requirements.txt
+
+# GUI Framework
+PyQt5>=5.15.0,<6.0.0
+
+# Deep Learning Framework
+torch>=2.0.0
+
+# Speech Recognition
+faster-whisper>=1.0.0
+
+# Audio Processing
+librosa>=0.10.0
+
+# Additional dependencies that will be installed automatically:
+# - numpy (required by librosa, torch)
+# - scipy (required by librosa)
+# - soundfile (required by librosa)
+# - audioread (required by librosa)
+# - numba (required by librosa)
+# - ctranslate2 (required by faster-whisper)
+# - tokenizers (required by faster-whisper)
+# - onnxruntime (may be required by faster-whisper)
+# - huggingface-hub (required by faster-whisper)
+
+# Note: FFmpeg is required but must be installed separately as a system dependency
+# Install FFmpeg:
+# - macOS: brew install ffmpeg
+# - Ubuntu/Debian: sudo apt-get install ffmpeg
+# - Windows: Download from https://ffmpeg.org/download.html
