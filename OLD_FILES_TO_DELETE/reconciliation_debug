@@ -1,0 +1,194 @@
+"""
+Dump detailed reconciliation debug info to file
+"""
+
+import sys
+import json
+from pathlib import Path
+
+# Add the path so we can import
+sys.path.insert(0, str(Path(__file__).parent))
+
+from captioner import HighPerformanceBatchWorker, HighPerformanceAudioProcessor
+from captioner import OptimizedSubtitleFormatter
+import torch
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+
+
+def dump_full_debug(video_path, output_dir="."):
+    """Dump full debug info for a video"""
+    
+    print("\n" + "="*80)
+    print("FULL DEBUG DUMP")
+    print("="*80)
+    
+    # Extract audio
+    worker = HighPerformanceBatchWorker()
+    audio_path, duration = HighPerformanceAudioProcessor.extract_audio_optimized(video_path)
+    print(f"\n✅ Audio extracted: {audio_path}")
+    
+    # Load model
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    torch_dtype = torch.float16 if device != "cpu" else torch.float32
+    
+    model_id = "openai/whisper-small"
+    print(f"\n🔄 Loading {model_id} on {device}...")
+    
+    model = AutoModelForSpeechSeq2Seq.from_pretrained(
+        model_id,
+        torch_dtype=torch_dtype,
+        low_cpu_mem_usage=True,
+    ).to(device)
+    
+    processor = AutoProcessor.from_pretrained(model_id)
+    
+    pipe = pipeline(
+        "automatic-speech-recognition",
+        model=model,
+        tokenizer=processor.tokenizer,
+        feature_extractor=processor.feature_extractor,
+        torch_dtype=torch_dtype,
+        device=device,
+        chunk_length_s=30,
+        stride_length_s=5,
+    )
+    
+    print("🎤 Transcribing...")
+    result = pipe(audio_path, return_timestamps='word')
+    
+    # Dump result to file
+    debug_info = {
+        'video_path': video_path,
+        'full_text': result.get('text', ''),
+        'full_text_word_count': len(result.get('text', '').split()),
+        'chunks_count': len(result.get('chunks', [])),
+        'word_level_count': 0,
+        'word_level_words': []
+    }
+    
+    # Extract word-level
+    if 'chunks' in result:
+        for chunk in result['chunks']:
+            if 'words' in chunk:
+                for word in chunk['words']:
+                    debug_info['word_level_words'].append({
+                        'word': word.get('word', ''),
+                        'start': word.get('start', 0),
+                        'end': word.get('end', 0)
+                    })
+                    debug_info['word_level_count'] += 1
+    
+    print(f"\n📝 Full text: {debug_info['full_text_word_count']} words")
+    print(f"📦 Word-level: {debug_info['word_level_count']} words")
+    
+    # Check for critical words
+    critical = ['targeting', 'metallic', 'as', 'more']
+    full_text_lower = debug_info['full_text'].lower()
+    word_level_words_lower = [w['word'].lower().strip('.,!?";:') for w in debug_info['word_level_words']]
+    
+    debug_info['critical_words'] = {}
+    
+    print(f"\n🔍 Critical words:")
+    for crit in critical:
+        in_full = crit in full_text_lower
+        in_word_level = crit in word_level_words_lower
+        
+        debug_info['critical_words'][crit] = {
+            'in_full_text': in_full,
+            'in_word_level': in_word_level
+        }
+        
+        if in_full and in_word_level:
+            print(f"   ✅ '{crit}': in both")
+        elif in_full and not in_word_level:
+            print(f"   ⚠️  '{crit}': in full text but NOT in word-level")
+        elif not in_full and in_word_level:
+            print(f"   ⚠️  '{crit}': in word-level but NOT in full text")
+        else:
+            print(f"   ❌ '{crit}': missing from both")
+    
+    # Now reconcile
+    print(f"\n🔄 Running reconciliation...")
+    full_text_words = debug_info['full_text'].split()
+    word_level_dicts = debug_info['word_level_words']
+    
+    reconciled = worker._reconcile_words(full_text_words, word_level_dicts)
+    
+    debug_info['reconciled_word_count'] = len(reconciled)
+    debug_info['reconciled_words'] = [
+        {'word': w.get('word', ''), 'start': w.get('start', 0), 'end': w.get('end', 0)}
+        for w in reconciled
+    ]
+    
+    print(f"✅ Reconciled: {len(reconciled)} words")
+    
+    # Check critical words after reconciliation
+    reconciled_words_lower = [w.get('word', '').lower().strip('.,!?";:') for w in reconciled]
+    
+    print(f"\n🔍 Critical words after reconciliation:")
+    for crit in critical:
+        if crit in reconciled_words_lower:
+            print(f"   ✅ '{crit}': present")
+        else:
+            print(f"   ❌ '{crit}': MISSING")
+    
+    # Create segments
+    print(f"\n📦 Creating segments...")
+    segments = OptimizedSubtitleFormatter.create_optimized_segments(reconciled)
+    
+    debug_info['segments_count'] = len(segments)
+    debug_info['segments'] = [
+        {'start': s.get('start', 0), 'end': s.get('end', 0), 'text': s.get('text', '')}
+        for s in segments
+    ]
+    
+    # Check critical words in segments
+    all_segment_text = ' '.join([s.get('text', '') for s in segments]).lower()
+    
+    print(f"\n🔍 Critical words in final segments:")
+    for crit in critical:
+        if crit in all_segment_text:
+            print(f"   ✅ '{crit}': present")
+        else:
+            print(f"   ❌ '{crit}': MISSING")
+    
+    # Save to JSON
+    output_file = Path(output_dir) / "debug_dump.json"
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(debug_info, f, indent=2, ensure_ascii=False)
+    
+    print(f"\n💾 Debug info saved to: {output_file}")
+    
+    # Also save reconciled words to text file for easy inspection
+    words_file = Path(output_dir) / "reconciled_words.txt"
+    with open(words_file, 'w', encoding='utf-8') as f:
+        f.write("RECONCILED WORDS:\n")
+        f.write("="*80 + "\n\n")
+        for i, w in enumerate(reconciled):
+            f.write(f"{i:4d}: {w.get('word', '')} ({w.get('start', 0):.2f}s - {w.get('end', 0):.2f}s)\n")
+    
+    print(f"💾 Reconciled words saved to: {words_file}")
+    
+    # Save segments to text file
+    segments_file = Path(output_dir) / "segments.txt"
+    with open(segments_file, 'w', encoding='utf-8') as f:
+        f.write("SEGMENTS:\n")
+        f.write("="*80 + "\n\n")
+        for i, seg in enumerate(segments):
+            f.write(f"[{i:2d}] {seg.get('start', 0):.2f}s - {seg.get('end', 0):.2f}s\n")
+            f.write(f"     {seg.get('text', '')}\n\n")
+    
+    print(f"💾 Segments saved to: {segments_file}")
+    
+    print("\n" + "="*80)
+    print("✅ DUMP COMPLETE")
+    print("="*80)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python dump_reconciliation_debug.py <video_file>")
+        sys.exit(1)
+    
+    video_path = sys.argv[1]
+    dump_full_debug(video_path)

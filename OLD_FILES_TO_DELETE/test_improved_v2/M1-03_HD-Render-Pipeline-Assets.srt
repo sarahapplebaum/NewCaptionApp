@@ -1,0 +1,405 @@
+﻿1
+00:00:02,500 --> 00:00:07,259
+In this video, we're going to explore the
+HDRP pipeline asset and how
+
+2
+00:00:07,259 --> 00:00:10,279
+you can use that to adjust settings inside
+of your HDRP
+
+3
+00:00:10,279 --> 00:00:12,779
+project. To access the current pipeline
+
+4
+00:00:12,779 --> 00:00:16,420
+asset, we can go to edit, project
+
+5
+00:00:16,420 --> 00:00:19,559
+settings, and inside of the graphics tab
+
+6
+00:00:19,559 --> 00:00:22,460
+here, we can set the default render
+pipeline
+
+7
+00:00:22,460 --> 00:00:26,800
+asset. This is going to be the default
+asset that is used if you do
+
+8
+00:00:26,800 --> 00:00:30,300
+not assign individual pipelines inside of
+the quality
+
+9
+00:00:30,300 --> 00:00:33,820
+tab. So you can see here we have all of
+these different quality
+
+10
+00:00:33,820 --> 00:00:36,679
+levels. We have high fidelity, balanced
+and
+
+11
+00:00:36,679 --> 00:00:39,920
+performant, and each has a slot for a
+render pipeline
+
+12
+00:00:39,920 --> 00:00:44,479
+asset. So you can customize the settings
+of your project based
+
+13
+00:00:44,479 --> 00:00:46,259
+on the quality level that you would
+
+14
+00:00:46,259 --> 00:00:50,960
+like. So for example, let's say that the
+high fidelity quality level
+
+15
+00:00:50,960 --> 00:00:53,920
+here has a render pipeline asset with ray
+tracing
+
+16
+00:00:53,920 --> 00:00:58,700
+enabled. Whereas the performant level has
+a different pipeline
+
+17
+00:00:58,700 --> 00:01:00,159
+asset with ray tracing
+
+18
+00:01:00,159 --> 00:01:04,840
+disabled. However, if a quality level does
+not have a render pipeline
+
+19
+00:01:04,840 --> 00:01:06,959
+asset assigned and we have that quality
+level
+
+20
+00:01:06,959 --> 00:01:10,480
+selected, it's going to fall back on this
+pipeline asset
+
+21
+00:01:10,480 --> 00:01:15,480
+here. We can select this asset inside of
+our assets tab
+
+22
+00:01:15,480 --> 00:01:20,420
+by clicking the pipeline asset, and then
+we will be directed to
+
+23
+00:01:20,420 --> 00:01:21,670
+the folder with the asset
+
+24
+00:01:21,719 --> 00:01:25,559
+itself. So here we have our HD render
+pipeline
+
+25
+00:01:25,609 --> 00:01:29,129
+asset, as well as some global settings and
+some default
+
+26
+00:01:29,179 --> 00:01:34,039
+volumes. We can create a new pipeline
+asset by right
+
+27
+00:01:34,089 --> 00:01:38,629
+clicking, create, rendering, and then
+select
+
+28
+00:01:38,679 --> 00:01:42,579
+HDRP asset. I'm going to select this and
+call this
+
+29
+00:01:42,629 --> 00:01:48,929
+high fidelity. I'm going to command D to
+duplicate
+
+30
+00:01:48,979 --> 00:01:53,919
+this and name this performant. And I'm
+going to
+
+31
+00:01:53,969 --> 00:01:55,569
+command D and name this
+
+32
+00:01:55,619 --> 00:02:00,259
+balanced. And now I can go into
+
+33
+00:02:00,309 --> 00:02:05,689
+edit, project settings, quality, and
+assign
+
+34
+00:02:05,739 --> 00:02:07,319
+all of my assets to these quality
+
+35
+00:02:07,369 --> 00:02:12,269
+levels. So I'm going to start with high
+fidelity and we'll see it
+
+36
+00:02:12,319 --> 00:02:16,949
+right here. I'm going to repeat this step
+with balanced.
+
+37
+00:02:20,420 --> 00:02:23,539
+And I'm also going to repeat this step
+with performant.
+
+38
+00:02:25,680 --> 00:02:28,000
+And for now I'm just going to leave my
+project on
+
+39
+00:02:28,000 --> 00:02:33,020
+balanced. And let's select the balanced HD
+render pipeline asset.
+
+40
+00:02:37,379 --> 00:02:41,060
+Inside of a pipeline asset, we can see all
+of these settings that have
+
+41
+00:02:41,060 --> 00:02:42,750
+to do with rendering, lighting,
+
+42
+00:02:42,800 --> 00:02:47,479
+materials, post processing, volumes, XR,
+and
+
+43
+00:02:47,479 --> 00:02:51,400
+virtual texturing. We're going to go over
+a lot of these features in
+
+44
+00:02:51,400 --> 00:02:54,960
+this course. We're not going to have time
+to go through all of these
+
+45
+00:02:54,960 --> 00:02:58,340
+settings here, but there are a couple of
+settings that we are going to
+
+46
+00:02:58,340 --> 00:03:01,539
+look at. We have some settings to enable
+ray
+
+47
+00:03:01,539 --> 00:03:04,180
+tracing, enable the GPU resident
+
+48
+00:03:04,180 --> 00:03:07,680
+drawer, which can help speed up the
+performance of your game by
+
+49
+00:03:07,680 --> 00:03:09,439
+drawing more frames on the
+
+50
+00:03:09,439 --> 00:03:12,699
+GPU. We can enable decals inside of our
+
+51
+00:03:12,699 --> 00:03:17,599
+game, enable dynamic resolution, which
+allows you to use upscaling
+
+52
+00:03:17,599 --> 00:03:19,139
+to boost the frame rate of your
+
+53
+00:03:19,139 --> 00:03:23,860
+game. We can enable water as well as some
+other
+
+54
+00:03:23,860 --> 00:03:28,699
+settings here. For lighting, we can make
+sure that volumetric
+
+55
+00:03:28,699 --> 00:03:32,979
+fog is enabled, as well as making sure our
+light probe system is on
+
+56
+00:03:32,979 --> 00:03:34,340
+adaptive probe volumes.
+
+57
+00:03:37,760 --> 00:03:41,259
+Making sure that screen space reflections
+is
+
+58
+00:03:41,259 --> 00:03:43,599
+enabled, since we're going to be using
+that later.
+
+59
+00:03:48,159 --> 00:03:49,960
+As well as enabling screen space
+
+60
+00:03:49,960 --> 00:03:54,379
+shadows, and we can also go through and
+adjust some of these other
+
+61
+00:03:54,379 --> 00:03:59,000
+settings as well. Now these are settings
+that are going to be specific
+
+62
+00:03:59,000 --> 00:04:00,780
+to just this render pipeline
+
+63
+00:04:00,780 --> 00:04:04,759
+asset. So for example, if you wanted to
+turn off screen spacing
+
+64
+00:04:04,759 --> 00:04:08,400
+ambient occlusion or screen space global
+illumination on this
+
+65
+00:04:08,400 --> 00:04:11,580
+asset, but you want that enabled for your
+high fidelity
+
+66
+00:04:11,580 --> 00:04:13,300
+asset, you can do that as
+
+67
+00:04:13,300 --> 00:04:17,600
+well. The HD render pipeline global
+settings asset
+
+68
+00:04:17,600 --> 00:04:21,899
+is going to allow you to change the
+default settings of your
+
+69
+00:04:21,899 --> 00:04:26,199
+project. More specifically, you can change
+all of these settings
+
+70
+00:04:26,199 --> 00:04:30,040
+inside of the volume here. So we can
+change settings with the
+
+71
+00:04:30,040 --> 00:04:34,680
+exposure, with fog, the visual environment
+such as the sky
+
+72
+00:04:34,680 --> 00:04:41,020
+type, and more. I'm going to close out of
+this window.
+
+73
+00:04:42,780 --> 00:04:46,060
+Before I forget, let me also enable ray
+tracing inside of this
+
+74
+00:04:46,060 --> 00:04:48,420
+project, since we are going to be
+exploring ray
+
+75
+00:04:48,420 --> 00:04:51,300
+tracing. However, do be aware that for
+this
+
+76
+00:04:51,300 --> 00:04:53,939
+course, in order to be able to use ray
+
+77
+00:04:53,939 --> 00:04:56,959
+tracing, you must be on a device that
+supports ray
+
+78
+00:04:56,959 --> 00:04:59,439
+tracing. Such as DirectX 12
+
+79
+00:04:59,439 --> 00:05:01,000
+devices, which would be a Windows
+
+80
+00:05:01,000 --> 00:05:04,339
+computer, a PlayStation 5, or an Xbox
+Series
+
+81
+00:05:04,339 --> 00:05:07,620
+X. You may not be able to see the results
+of that ray
+
+82
+00:05:07,620 --> 00:05:09,259
+tracing. You can still implement
+
+83
+00:05:09,259 --> 00:05:10,899
+them, but Unity won't be able to render
+
+84
+00:05:10,899 --> 00:05:15,279
+it. In the next video, we're going to talk
+about volume profiles and
+
+85
+00:05:15,279 --> 00:05:18,660
+how we can use that to adjust the settings
+of our render pipeline
+
+86
+00:05:18,660 --> 00:05:19,910
+asset even more.

@@ -1,0 +1,224 @@
+"""
+Debug tool to trace where words are lost during processing
+"""
+
+from captioner import OptimizedSubtitleFormatter
+from typing import List, Dict
+
+
+def trace_word_processing(words: List[Dict], target_words: List[str]):
+    """
+    Trace specific words through the processing pipeline
+    """
+    print("\n" + "="*80)
+    print("WORD PROCESSING TRACE")
+    print("="*80)
+    
+    # Normalize target words
+    target_words_normalized = [w.lower() for w in target_words]
+    
+    # Step 1: Check input
+    print(f"\n📥 STEP 1: Input words")
+    input_words = [w.get('word', '').strip() for w in words]
+    for target in target_words:
+        count = sum(1 for w in input_words if w.lower() == target.lower())
+        indices = [i for i, w in enumerate(input_words) if w.lower() == target.lower()]
+        print(f"   '{target}': {count} occurrences at indices {indices}")
+    
+    # Step 2: After clean_and_process_words
+    print(f"\n🧹 STEP 2: After clean_and_process_words")
+    cleaned_words = OptimizedSubtitleFormatter.clean_and_process_words(words)
+    cleaned_word_strings = [w.word for w in cleaned_words]
+    
+    for target in target_words:
+        count = sum(1 for w in cleaned_word_strings if w.lower() == target.lower())
+        indices = [i for i, w in enumerate(cleaned_word_strings) if w.lower() == target.lower()]
+        if count == 0:
+            print(f"   ❌ '{target}': LOST! (was present in input)")
+        else:
+            print(f"   ✅ '{target}': {count} occurrences at indices {indices}")
+    
+    # Step 3: After create_optimized_segments
+    print(f"\n📦 STEP 3: After create_optimized_segments")
+    segments = OptimizedSubtitleFormatter.create_optimized_segments(words)
+    
+    segment_words = []
+    for seg in segments:
+        text = seg.get('text', '')
+        segment_words.extend(text.split())
+    
+    for target in target_words:
+        count = sum(1 for w in segment_words if w.lower().strip('.,!?";:') == target.lower())
+        if count == 0:
+            print(f"   ❌ '{target}': LOST in segmentation!")
+        else:
+            print(f"   ✅ '{target}': {count} occurrences")
+            # Show context
+            for i, word in enumerate(segment_words):
+                if word.lower().strip('.,!?";:') == target.lower():
+                    context_start = max(0, i - 3)
+                    context_end = min(len(segment_words), i + 4)
+                    context = ' '.join(segment_words[context_start:context_end])
+                    print(f"      Context: ...{context}...")
+    
+    print("\n" + "="*80)
+
+
+def test_problematic_words():
+    """Test the specific words that are being dropped"""
+    
+    # Simulate the problematic sections
+    test_cases = [
+        {
+            'name': 'targeting section',
+            'text': "but screen space reflections are an option if you're targeting very high-end devices",
+            'target_word': 'targeting'
+        },
+        {
+            'name': 'metallic section',
+            'text': "since after all these ducts are metallic and they reflect the light",
+            'target_word': 'metallic'
+        },
+        {
+            'name': 'as section',
+            'text': "cannot be used on transparent materials as those will always use approximation",
+            'target_word': 'as'
+        }
+    ]
+    
+    for test_case in test_cases:
+        print(f"\n{'='*80}")
+        print(f"Testing: {test_case['name']}")
+        print(f"{'='*80}")
+        
+        # Create word list
+        words = []
+        word_list = test_case['text'].split()
+        current_time = 0.0
+        
+        for word in word_list:
+            words.append({
+                "word": word,
+                "start": current_time,
+                "end": current_time + 0.4
+            })
+            current_time += 0.4
+        
+        # Trace processing
+        trace_word_processing(words, [test_case['target_word']])
+        
+        # Also test with surrounding context
+        segments = OptimizedSubtitleFormatter.create_optimized_segments(words)
+        full_text = ' '.join([s['text'] for s in segments])
+        
+        if test_case['target_word'].lower() in full_text.lower():
+            print(f"\n✅ Final result: '{test_case['target_word']}' IS present")
+        else:
+            print(f"\n❌ Final result: '{test_case['target_word']}' IS MISSING")
+            print(f"   Output text: {full_text}")
+
+
+def investigate_clean_and_process():
+    """Deep dive into clean_and_process_words"""
+    
+    print("\n" + "="*80)
+    print("INVESTIGATING clean_and_process_words")
+    print("="*80)
+    
+    # Test case with 'targeting'
+    words = [
+        {"word": "option", "start": 0.0, "end": 0.4},
+        {"word": "if", "start": 0.4, "end": 0.8},
+        {"word": "you're", "start": 0.8, "end": 1.2},
+        {"word": "targeting", "start": 1.2, "end": 1.6},
+        {"word": "very", "start": 1.6, "end": 2.0},
+        {"word": "high-end", "start": 2.0, "end": 2.4},
+        {"word": "devices", "start": 2.4, "end": 2.8},
+    ]
+    
+    print("\nInput words:")
+    for i, w in enumerate(words):
+        print(f"  {i}: {w['word']}")
+    
+    # Process through clean_and_process_words manually
+    print("\n--- Processing ---")
+    
+    # First pass: convert to WordInfo and count frequencies
+    word_infos = []
+    word_frequencies = {}
+    
+    from captioner import WordInfo, safe_float
+    
+    for word_dict in words:
+        word = word_dict.get("word") or ""
+        word = word.strip()
+        
+        if not word:
+            continue
+        
+        word_info = WordInfo(
+            word=word,
+            start=safe_float(word_dict.get("start"), 0),
+            end=safe_float(word_dict.get("end"), 0)
+        )
+        
+        word_infos.append(word_info)
+        clean = word_info.clean_word
+        word_frequencies[clean] = word_frequencies.get(clean, 0) + 1
+    
+    print(f"\nWord frequencies:")
+    for word, freq in word_frequencies.items():
+        print(f"  '{word}': {freq}")
+    
+    total_words = len(word_infos)
+    print(f"\nTotal words: {total_words}")
+    
+    # Second pass: filter
+    cleaned = []
+    word_counts = {}
+    
+    for i, word_info in enumerate(word_infos):
+        clean = word_info.clean_word
+        frequency = word_frequencies.get(clean, 0)
+        
+        print(f"\nProcessing word {i}: '{word_info.word}'")
+        print(f"  Clean: '{clean}'")
+        print(f"  Frequency: {frequency}")
+        print(f"  Percentage: {frequency / total_words * 100:.1f}%")
+        
+        # Skip only truly excessive repetition (>50% of total)
+        if frequency > total_words * 0.5:
+            current_count = word_counts.get(clean, 0)
+            print(f"  ⚠️  High frequency! Current count: {current_count}")
+            if current_count >= 3:
+                print(f"  ❌ SKIPPED - exceeds limit")
+                continue
+            word_counts[clean] = current_count + 1
+            print(f"  ✅ Kept (count now {current_count + 1})")
+        else:
+            print(f"  ✅ Kept (normal frequency)")
+        
+        cleaned.append(word_info)
+    
+    print(f"\n--- Results ---")
+    print(f"Input words: {len(words)}")
+    print(f"Output words: {len(cleaned)}")
+    print(f"Words dropped: {len(words) - len(cleaned)}")
+    
+    if len(cleaned) < len(words):
+        print(f"\n❌ Words were dropped!")
+        input_words = [w['word'] for w in words]
+        output_words = [w.word for w in cleaned]
+        dropped = set(input_words) - set(output_words)
+        print(f"Dropped words: {dropped}")
+
+
+if __name__ == '__main__':
+    print("🔍 DIAGNOSTIC TOOL FOR WORD LOSS")
+    print("="*80)
+    
+    # Run tests
+    test_problematic_words()
+    
+    # Deep investigation
+    investigate_clean_and_process()

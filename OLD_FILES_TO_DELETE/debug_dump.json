@@ -1,0 +1,3162 @@
+{
+  "video_path": "/Users/sarah.applebaum/Documents/FinalRenders/HDRP Lighting Fundamentals/Camtasia/mp4/M1-11_Screen-Space-Reflection.mp4",
+  "full_text": " In this video, we're going to go over screen space reflections, which is a complex topic that deserves a little bit more time for discussion. Screen space reflections allow you to calculate reflections from the scene in real time without needing to use reflection probes, which we cover in the next module. This is a very intense effect, so reflection probes are the more performant option, but screen space reflections are an option if you're targeting very high-end devices. You're going to see this effect mostly on water, metallics, and other reflective materials. Once we've added screen space reflections onto our volume, let's take a look at it in action. Right now in our evening A scene here, the main thing that uses reflections are these air ducts above us. If I were to disable these reflection probes, we can see the color of these air ducts completely change, since after all these ducts are metallic and they reflect the light from the office around it. These reflection probes approximate the amount of light that the metallic air ducts are going to give off. Let's say I want to completely do away with reflection probes and have these use screen space reflections to approximate their reflection. What we can do is we can come over to the material that these air ducts use. So for example, if I select this and I can see that that the in the materials is air ducts B, I can go ahead and select air ducts B, toggle receive SSR, and I can do the same with these materials as well. Enable SSR on all of these air duct materials and now if I go into my volume here and I start messing around with the screen space reflection settings I can start getting these air ducts to reflect light using the scene itself rather than reflection probes. We can change the amount of smoothness. Minimum smoothness determines how smooth an object must be for SSR to be applied. Objects below this minimum use another reflection method such as probes. The smoothness fade start will set the smoothness value at which SSR reflections begin to fade out. Lower values results in HDRP fading out SSR reflections for less smooth game objects. We have some other settings here such as the ability to reflect the sky, the screen edge fade distance, as well as the object thickness. This controls how thick objects are inside of your scene. So if I set this thickness to one, we'll see more reflections on our ducks here because the rays are not passing through them as much. Additionally, we also have some quality settings here. So I can set this to high quality to get a bit of a better reflection. And we can also change the algorithm as well, from approximation to PBR accumulation. Approximation is a quicker algorithm, which results in less resources used, but it's not as accurate for rough surfaces. Something like PBR accumulation accumulates multiple frames to generate a more accurate result. And we can control the amount of accumulation using this accumulation factor. This gives a more accurate result, but it is resource intensive, and it can lead to some ghosting. Additionally, this algorithm cannot be used on transparent materials, as those will always use approximation. In the next module, we'll begin talking about the basics of lighting inside of HDRP by learning about the different light types.",
+  "full_text_word_count": 575,
+  "chunks_count": 576,
+  "word_level_count": 0,
+  "word_level_words": [],
+  "critical_words": {
+    "targeting": {
+      "in_full_text": true,
+      "in_word_level": false
+    },
+    "metallic": {
+      "in_full_text": true,
+      "in_word_level": false
+    },
+    "as": {
+      "in_full_text": true,
+      "in_word_level": false
+    },
+    "more": {
+      "in_full_text": true,
+      "in_word_level": false
+    }
+  },
+  "reconciled_word_count": 575,
+  "reconciled_words": [
+    {
+      "word": "In",
+      "start": 0.0,
+      "end": 0.35
+    },
+    {
+      "word": "this",
+      "start": 0.35,
+      "end": 0.7
+    },
+    {
+      "word": "video,",
+      "start": 0.7,
+      "end": 1.0499999999999998
+    },
+    {
+      "word": "we're",
+      "start": 1.0499999999999998,
+      "end": 1.4
+    },
+    {
+      "word": "going",
+      "start": 1.4,
+      "end": 1.75
+    },
+    {
+      "word": "to",
+      "start": 1.75,
+      "end": 2.1
+    },
+    {
+      "word": "go",
+      "start": 2.1,
+      "end": 2.45
+    },
+    {
+      "word": "over",
+      "start": 2.45,
+      "end": 2.8000000000000003
+    },
+    {
+      "word": "screen",
+      "start": 2.8000000000000003,
+      "end": 3.1500000000000004
+    },
+    {
+      "word": "space",
+      "start": 3.1500000000000004,
+      "end": 3.5000000000000004
+    },
+    {
+      "word": "reflections,",
+      "start": 3.5000000000000004,
+      "end": 3.8500000000000005
+    },
+    {
+      "word": "which",
+      "start": 3.8500000000000005,
+      "end": 4.2
+    },
+    {
+      "word": "is",
+      "start": 4.2,
+      "end": 4.55
+    },
+    {
+      "word": "a",
+      "start": 4.55,
+      "end": 4.8999999999999995
+    },
+    {
+      "word": "complex",
+      "start": 4.8999999999999995,
+      "end": 5.249999999999999
+    },
+    {
+      "word": "topic",
+      "start": 5.249999999999999,
+      "end": 5.599999999999999
+    },
+    {
+      "word": "that",
+      "start": 5.599999999999999,
+      "end": 5.949999999999998
+    },
+    {
+      "word": "deserves",
+      "start": 5.949999999999998,
+      "end": 6.299999999999998
+    },
+    {
+      "word": "a",
+      "start": 6.299999999999998,
+      "end": 6.649999999999998
+    },
+    {
+      "word": "little",
+      "start": 6.649999999999998,
+      "end": 6.999999999999997
+    },
+    {
+      "word": "bit",
+      "start": 6.999999999999997,
+      "end": 7.349999999999997
+    },
+    {
+      "word": "more",
+      "start": 7.349999999999997,
+      "end": 7.699999999999997
+    },
+    {
+      "word": "time",
+      "start": 7.699999999999997,
+      "end": 8.049999999999997
+    },
+    {
+      "word": "for",
+      "start": 8.049999999999997,
+      "end": 8.399999999999997
+    },
+    {
+      "word": "discussion.",
+      "start": 8.399999999999997,
+      "end": 8.749999999999996
+    },
+    {
+      "word": "Screen",
+      "start": 8.749999999999996,
+      "end": 9.099999999999996
+    },
+    {
+      "word": "space",
+      "start": 9.099999999999996,
+      "end": 9.449999999999996
+    },
+    {
+      "word": "reflections",
+      "start": 9.449999999999996,
+      "end": 9.799999999999995
+    },
+    {
+      "word": "allow",
+      "start": 9.799999999999995,
+      "end": 10.149999999999995
+    },
+    {
+      "word": "you",
+      "start": 10.149999999999995,
+      "end": 10.499999999999995
+    },
+    {
+      "word": "to",
+      "start": 10.499999999999995,
+      "end": 10.849999999999994
+    },
+    {
+      "word": "calculate",
+      "start": 10.849999999999994,
+      "end": 11.199999999999994
+    },
+    {
+      "word": "reflections",
+      "start": 11.199999999999994,
+      "end": 11.549999999999994
+    },
+    {
+      "word": "from",
+      "start": 11.549999999999994,
+      "end": 11.899999999999993
+    },
+    {
+      "word": "the",
+      "start": 11.899999999999993,
+      "end": 12.249999999999993
+    },
+    {
+      "word": "scene",
+      "start": 12.249999999999993,
+      "end": 12.599999999999993
+    },
+    {
+      "word": "in",
+      "start": 12.599999999999993,
+      "end": 12.949999999999992
+    },
+    {
+      "word": "real",
+      "start": 12.949999999999992,
+      "end": 13.299999999999992
+    },
+    {
+      "word": "time",
+      "start": 13.299999999999992,
+      "end": 13.649999999999991
+    },
+    {
+      "word": "without",
+      "start": 13.649999999999991,
+      "end": 13.999999999999991
+    },
+    {
+      "word": "needing",
+      "start": 13.999999999999991,
+      "end": 14.34999999999999
+    },
+    {
+      "word": "to",
+      "start": 14.34999999999999,
+      "end": 14.69999999999999
+    },
+    {
+      "word": "use",
+      "start": 14.69999999999999,
+      "end": 15.04999999999999
+    },
+    {
+      "word": "reflection",
+      "start": 15.04999999999999,
+      "end": 15.39999999999999
+    },
+    {
+      "word": "probes,",
+      "start": 15.39999999999999,
+      "end": 15.74999999999999
+    },
+    {
+      "word": "which",
+      "start": 15.74999999999999,
+      "end": 16.09999999999999
+    },
+    {
+      "word": "we",
+      "start": 16.09999999999999,
+      "end": 16.449999999999992
+    },
+    {
+      "word": "cover",
+      "start": 16.449999999999992,
+      "end": 16.799999999999994
+    },
+    {
+      "word": "in",
+      "start": 16.799999999999994,
+      "end": 17.149999999999995
+    },
+    {
+      "word": "the",
+      "start": 17.149999999999995,
+      "end": 17.499999999999996
+    },
+    {
+      "word": "next",
+      "start": 17.499999999999996,
+      "end": 17.849999999999998
+    },
+    {
+      "word": "module.",
+      "start": 17.849999999999998,
+      "end": 18.2
+    },
+    {
+      "word": "This",
+      "start": 18.2,
+      "end": 18.55
+    },
+    {
+      "word": "is",
+      "start": 18.55,
+      "end": 18.900000000000002
+    },
+    {
+      "word": "a",
+      "start": 18.900000000000002,
+      "end": 19.250000000000004
+    },
+    {
+      "word": "very",
+      "start": 19.250000000000004,
+      "end": 19.600000000000005
+    },
+    {
+      "word": "intense",
+      "start": 19.600000000000005,
+      "end": 19.950000000000006
+    },
+    {
+      "word": "effect,",
+      "start": 19.950000000000006,
+      "end": 20.300000000000008
+    },
+    {
+      "word": "so",
+      "start": 20.300000000000008,
+      "end": 20.65000000000001
+    },
+    {
+      "word": "reflection",
+      "start": 20.65000000000001,
+      "end": 21.00000000000001
+    },
+    {
+      "word": "probes",
+      "start": 21.00000000000001,
+      "end": 21.350000000000012
+    },
+    {
+      "word": "are",
+      "start": 21.350000000000012,
+      "end": 21.700000000000014
+    },
+    {
+      "word": "the",
+      "start": 21.700000000000014,
+      "end": 22.050000000000015
+    },
+    {
+      "word": "more",
+      "start": 22.050000000000015,
+      "end": 22.400000000000016
+    },
+    {
+      "word": "performant",
+      "start": 22.400000000000016,
+      "end": 22.750000000000018
+    },
+    {
+      "word": "option,",
+      "start": 22.750000000000018,
+      "end": 23.10000000000002
+    },
+    {
+      "word": "but",
+      "start": 23.10000000000002,
+      "end": 23.45000000000002
+    },
+    {
+      "word": "screen",
+      "start": 23.45000000000002,
+      "end": 23.800000000000022
+    },
+    {
+      "word": "space",
+      "start": 23.800000000000022,
+      "end": 24.150000000000023
+    },
+    {
+      "word": "reflections",
+      "start": 24.150000000000023,
+      "end": 24.500000000000025
+    },
+    {
+      "word": "are",
+      "start": 24.500000000000025,
+      "end": 24.850000000000026
+    },
+    {
+      "word": "an",
+      "start": 24.850000000000026,
+      "end": 25.200000000000028
+    },
+    {
+      "word": "option",
+      "start": 25.200000000000028,
+      "end": 25.55000000000003
+    },
+    {
+      "word": "if",
+      "start": 25.55000000000003,
+      "end": 25.90000000000003
+    },
+    {
+      "word": "you're",
+      "start": 25.90000000000003,
+      "end": 26.250000000000032
+    },
+    {
+      "word": "targeting",
+      "start": 26.250000000000032,
+      "end": 26.600000000000033
+    },
+    {
+      "word": "very",
+      "start": 26.600000000000033,
+      "end": 26.950000000000035
+    },
+    {
+      "word": "high-end",
+      "start": 26.950000000000035,
+      "end": 27.300000000000036
+    },
+    {
+      "word": "devices.",
+      "start": 27.300000000000036,
+      "end": 27.650000000000038
+    },
+    {
+      "word": "You're",
+      "start": 27.650000000000038,
+      "end": 28.00000000000004
+    },
+    {
+      "word": "going",
+      "start": 28.00000000000004,
+      "end": 28.35000000000004
+    },
+    {
+      "word": "to",
+      "start": 28.35000000000004,
+      "end": 28.700000000000042
+    },
+    {
+      "word": "see",
+      "start": 28.700000000000042,
+      "end": 29.050000000000043
+    },
+    {
+      "word": "this",
+      "start": 29.050000000000043,
+      "end": 29.400000000000045
+    },
+    {
+      "word": "effect",
+      "start": 29.400000000000045,
+      "end": 29.750000000000046
+    },
+    {
+      "word": "mostly",
+      "start": 29.750000000000046,
+      "end": 30.100000000000048
+    },
+    {
+      "word": "on",
+      "start": 30.100000000000048,
+      "end": 30.45000000000005
+    },
+    {
+      "word": "water,",
+      "start": 30.45000000000005,
+      "end": 30.80000000000005
+    },
+    {
+      "word": "metallics,",
+      "start": 30.80000000000005,
+      "end": 31.150000000000052
+    },
+    {
+      "word": "and",
+      "start": 31.150000000000052,
+      "end": 31.500000000000053
+    },
+    {
+      "word": "other",
+      "start": 31.500000000000053,
+      "end": 31.850000000000055
+    },
+    {
+      "word": "reflective",
+      "start": 31.850000000000055,
+      "end": 32.20000000000005
+    },
+    {
+      "word": "materials.",
+      "start": 32.20000000000005,
+      "end": 32.550000000000054
+    },
+    {
+      "word": "Once",
+      "start": 32.550000000000054,
+      "end": 32.900000000000055
+    },
+    {
+      "word": "we've",
+      "start": 32.900000000000055,
+      "end": 33.25000000000006
+    },
+    {
+      "word": "added",
+      "start": 33.25000000000006,
+      "end": 33.60000000000006
+    },
+    {
+      "word": "screen",
+      "start": 33.60000000000006,
+      "end": 33.95000000000006
+    },
+    {
+      "word": "space",
+      "start": 33.95000000000006,
+      "end": 34.30000000000006
+    },
+    {
+      "word": "reflections",
+      "start": 34.30000000000006,
+      "end": 34.65000000000006
+    },
+    {
+      "word": "onto",
+      "start": 34.65000000000006,
+      "end": 35.000000000000064
+    },
+    {
+      "word": "our",
+      "start": 35.000000000000064,
+      "end": 35.350000000000065
+    },
+    {
+      "word": "volume,",
+      "start": 35.350000000000065,
+      "end": 35.70000000000007
+    },
+    {
+      "word": "let's",
+      "start": 35.70000000000007,
+      "end": 36.05000000000007
+    },
+    {
+      "word": "take",
+      "start": 36.05000000000007,
+      "end": 36.40000000000007
+    },
+    {
+      "word": "a",
+      "start": 36.40000000000007,
+      "end": 36.75000000000007
+    },
+    {
+      "word": "look",
+      "start": 36.75000000000007,
+      "end": 37.10000000000007
+    },
+    {
+      "word": "at",
+      "start": 37.10000000000007,
+      "end": 37.450000000000074
+    },
+    {
+      "word": "it",
+      "start": 37.450000000000074,
+      "end": 37.800000000000075
+    },
+    {
+      "word": "in",
+      "start": 37.800000000000075,
+      "end": 38.15000000000008
+    },
+    {
+      "word": "action.",
+      "start": 38.15000000000008,
+      "end": 38.50000000000008
+    },
+    {
+      "word": "Right",
+      "start": 38.50000000000008,
+      "end": 38.85000000000008
+    },
+    {
+      "word": "now",
+      "start": 38.85000000000008,
+      "end": 39.20000000000008
+    },
+    {
+      "word": "in",
+      "start": 39.20000000000008,
+      "end": 39.55000000000008
+    },
+    {
+      "word": "our",
+      "start": 39.55000000000008,
+      "end": 39.900000000000084
+    },
+    {
+      "word": "evening",
+      "start": 39.900000000000084,
+      "end": 40.250000000000085
+    },
+    {
+      "word": "A",
+      "start": 40.250000000000085,
+      "end": 40.60000000000009
+    },
+    {
+      "word": "scene",
+      "start": 40.60000000000009,
+      "end": 40.95000000000009
+    },
+    {
+      "word": "here,",
+      "start": 40.95000000000009,
+      "end": 41.30000000000009
+    },
+    {
+      "word": "the",
+      "start": 41.30000000000009,
+      "end": 41.65000000000009
+    },
+    {
+      "word": "main",
+      "start": 41.65000000000009,
+      "end": 42.00000000000009
+    },
+    {
+      "word": "thing",
+      "start": 42.00000000000009,
+      "end": 42.350000000000094
+    },
+    {
+      "word": "that",
+      "start": 42.350000000000094,
+      "end": 42.700000000000095
+    },
+    {
+      "word": "uses",
+      "start": 42.700000000000095,
+      "end": 43.0500000000001
+    },
+    {
+      "word": "reflections",
+      "start": 43.0500000000001,
+      "end": 43.4000000000001
+    },
+    {
+      "word": "are",
+      "start": 43.4000000000001,
+      "end": 43.7500000000001
+    },
+    {
+      "word": "these",
+      "start": 43.7500000000001,
+      "end": 44.1000000000001
+    },
+    {
+      "word": "air",
+      "start": 44.1000000000001,
+      "end": 44.4500000000001
+    },
+    {
+      "word": "ducts",
+      "start": 44.4500000000001,
+      "end": 44.800000000000104
+    },
+    {
+      "word": "above",
+      "start": 44.800000000000104,
+      "end": 45.150000000000105
+    },
+    {
+      "word": "us.",
+      "start": 45.150000000000105,
+      "end": 45.50000000000011
+    },
+    {
+      "word": "If",
+      "start": 45.50000000000011,
+      "end": 45.85000000000011
+    },
+    {
+      "word": "I",
+      "start": 45.85000000000011,
+      "end": 46.20000000000011
+    },
+    {
+      "word": "were",
+      "start": 46.20000000000011,
+      "end": 46.55000000000011
+    },
+    {
+      "word": "to",
+      "start": 46.55000000000011,
+      "end": 46.90000000000011
+    },
+    {
+      "word": "disable",
+      "start": 46.90000000000011,
+      "end": 47.250000000000114
+    },
+    {
+      "word": "these",
+      "start": 47.250000000000114,
+      "end": 47.600000000000115
+    },
+    {
+      "word": "reflection",
+      "start": 47.600000000000115,
+      "end": 47.95000000000012
+    },
+    {
+      "word": "probes,",
+      "start": 47.95000000000012,
+      "end": 48.30000000000012
+    },
+    {
+      "word": "we",
+      "start": 48.30000000000012,
+      "end": 48.65000000000012
+    },
+    {
+      "word": "can",
+      "start": 48.65000000000012,
+      "end": 49.00000000000012
+    },
+    {
+      "word": "see",
+      "start": 49.00000000000012,
+      "end": 49.35000000000012
+    },
+    {
+      "word": "the",
+      "start": 49.35000000000012,
+      "end": 49.700000000000124
+    },
+    {
+      "word": "color",
+      "start": 49.700000000000124,
+      "end": 50.050000000000125
+    },
+    {
+      "word": "of",
+      "start": 50.050000000000125,
+      "end": 50.40000000000013
+    },
+    {
+      "word": "these",
+      "start": 50.40000000000013,
+      "end": 50.75000000000013
+    },
+    {
+      "word": "air",
+      "start": 50.75000000000013,
+      "end": 51.10000000000013
+    },
+    {
+      "word": "ducts",
+      "start": 51.10000000000013,
+      "end": 51.45000000000013
+    },
+    {
+      "word": "completely",
+      "start": 51.45000000000013,
+      "end": 51.80000000000013
+    },
+    {
+      "word": "change,",
+      "start": 51.80000000000013,
+      "end": 52.150000000000134
+    },
+    {
+      "word": "since",
+      "start": 52.150000000000134,
+      "end": 52.500000000000135
+    },
+    {
+      "word": "after",
+      "start": 52.500000000000135,
+      "end": 52.850000000000136
+    },
+    {
+      "word": "all",
+      "start": 52.850000000000136,
+      "end": 53.20000000000014
+    },
+    {
+      "word": "these",
+      "start": 53.20000000000014,
+      "end": 53.55000000000014
+    },
+    {
+      "word": "ducts",
+      "start": 53.55000000000014,
+      "end": 53.90000000000014
+    },
+    {
+      "word": "are",
+      "start": 53.90000000000014,
+      "end": 54.25000000000014
+    },
+    {
+      "word": "metallic",
+      "start": 54.25000000000014,
+      "end": 54.60000000000014
+    },
+    {
+      "word": "and",
+      "start": 54.60000000000014,
+      "end": 54.950000000000145
+    },
+    {
+      "word": "they",
+      "start": 54.950000000000145,
+      "end": 55.300000000000146
+    },
+    {
+      "word": "reflect",
+      "start": 55.300000000000146,
+      "end": 55.65000000000015
+    },
+    {
+      "word": "the",
+      "start": 55.65000000000015,
+      "end": 56.00000000000015
+    },
+    {
+      "word": "light",
+      "start": 56.00000000000015,
+      "end": 56.35000000000015
+    },
+    {
+      "word": "from",
+      "start": 56.35000000000015,
+      "end": 56.70000000000015
+    },
+    {
+      "word": "the",
+      "start": 56.70000000000015,
+      "end": 57.05000000000015
+    },
+    {
+      "word": "office",
+      "start": 57.05000000000015,
+      "end": 57.400000000000155
+    },
+    {
+      "word": "around",
+      "start": 57.400000000000155,
+      "end": 57.750000000000156
+    },
+    {
+      "word": "it.",
+      "start": 57.750000000000156,
+      "end": 58.10000000000016
+    },
+    {
+      "word": "These",
+      "start": 58.10000000000016,
+      "end": 58.45000000000016
+    },
+    {
+      "word": "reflection",
+      "start": 58.45000000000016,
+      "end": 58.80000000000016
+    },
+    {
+      "word": "probes",
+      "start": 58.80000000000016,
+      "end": 59.15000000000016
+    },
+    {
+      "word": "approximate",
+      "start": 59.15000000000016,
+      "end": 59.50000000000016
+    },
+    {
+      "word": "the",
+      "start": 59.50000000000016,
+      "end": 59.850000000000165
+    },
+    {
+      "word": "amount",
+      "start": 59.850000000000165,
+      "end": 60.200000000000166
+    },
+    {
+      "word": "of",
+      "start": 60.200000000000166,
+      "end": 60.55000000000017
+    },
+    {
+      "word": "light",
+      "start": 60.55000000000017,
+      "end": 60.90000000000017
+    },
+    {
+      "word": "that",
+      "start": 60.90000000000017,
+      "end": 61.25000000000017
+    },
+    {
+      "word": "the",
+      "start": 61.25000000000017,
+      "end": 61.60000000000017
+    },
+    {
+      "word": "metallic",
+      "start": 61.60000000000017,
+      "end": 61.95000000000017
+    },
+    {
+      "word": "air",
+      "start": 61.95000000000017,
+      "end": 62.300000000000175
+    },
+    {
+      "word": "ducts",
+      "start": 62.300000000000175,
+      "end": 62.650000000000176
+    },
+    {
+      "word": "are",
+      "start": 62.650000000000176,
+      "end": 63.00000000000018
+    },
+    {
+      "word": "going",
+      "start": 63.00000000000018,
+      "end": 63.35000000000018
+    },
+    {
+      "word": "to",
+      "start": 63.35000000000018,
+      "end": 63.70000000000018
+    },
+    {
+      "word": "give",
+      "start": 63.70000000000018,
+      "end": 64.05000000000018
+    },
+    {
+      "word": "off.",
+      "start": 64.05000000000018,
+      "end": 64.40000000000018
+    },
+    {
+      "word": "Let's",
+      "start": 64.40000000000018,
+      "end": 64.75000000000017
+    },
+    {
+      "word": "say",
+      "start": 64.75000000000017,
+      "end": 65.10000000000016
+    },
+    {
+      "word": "I",
+      "start": 65.10000000000016,
+      "end": 65.45000000000016
+    },
+    {
+      "word": "want",
+      "start": 65.45000000000016,
+      "end": 65.80000000000015
+    },
+    {
+      "word": "to",
+      "start": 65.80000000000015,
+      "end": 66.15000000000015
+    },
+    {
+      "word": "completely",
+      "start": 66.15000000000015,
+      "end": 66.50000000000014
+    },
+    {
+      "word": "do",
+      "start": 66.50000000000014,
+      "end": 66.85000000000014
+    },
+    {
+      "word": "away",
+      "start": 66.85000000000014,
+      "end": 67.20000000000013
+    },
+    {
+      "word": "with",
+      "start": 67.20000000000013,
+      "end": 67.55000000000013
+    },
+    {
+      "word": "reflection",
+      "start": 67.55000000000013,
+      "end": 67.90000000000012
+    },
+    {
+      "word": "probes",
+      "start": 67.90000000000012,
+      "end": 68.25000000000011
+    },
+    {
+      "word": "and",
+      "start": 68.25000000000011,
+      "end": 68.60000000000011
+    },
+    {
+      "word": "have",
+      "start": 68.60000000000011,
+      "end": 68.9500000000001
+    },
+    {
+      "word": "these",
+      "start": 68.9500000000001,
+      "end": 69.3000000000001
+    },
+    {
+      "word": "use",
+      "start": 69.3000000000001,
+      "end": 69.65000000000009
+    },
+    {
+      "word": "screen",
+      "start": 69.65000000000009,
+      "end": 70.00000000000009
+    },
+    {
+      "word": "space",
+      "start": 70.00000000000009,
+      "end": 70.35000000000008
+    },
+    {
+      "word": "reflections",
+      "start": 70.35000000000008,
+      "end": 70.70000000000007
+    },
+    {
+      "word": "to",
+      "start": 70.70000000000007,
+      "end": 71.05000000000007
+    },
+    {
+      "word": "approximate",
+      "start": 71.05000000000007,
+      "end": 71.40000000000006
+    },
+    {
+      "word": "their",
+      "start": 71.40000000000006,
+      "end": 71.75000000000006
+    },
+    {
+      "word": "reflection.",
+      "start": 71.75000000000006,
+      "end": 72.10000000000005
+    },
+    {
+      "word": "What",
+      "start": 72.10000000000005,
+      "end": 72.45000000000005
+    },
+    {
+      "word": "we",
+      "start": 72.45000000000005,
+      "end": 72.80000000000004
+    },
+    {
+      "word": "can",
+      "start": 72.80000000000004,
+      "end": 73.15000000000003
+    },
+    {
+      "word": "do",
+      "start": 73.15000000000003,
+      "end": 73.50000000000003
+    },
+    {
+      "word": "is",
+      "start": 73.50000000000003,
+      "end": 73.85000000000002
+    },
+    {
+      "word": "we",
+      "start": 73.85000000000002,
+      "end": 74.20000000000002
+    },
+    {
+      "word": "can",
+      "start": 74.20000000000002,
+      "end": 74.55000000000001
+    },
+    {
+      "word": "come",
+      "start": 74.55000000000001,
+      "end": 74.9
+    },
+    {
+      "word": "over",
+      "start": 74.9,
+      "end": 75.25
+    },
+    {
+      "word": "to",
+      "start": 75.25,
+      "end": 75.6
+    },
+    {
+      "word": "the",
+      "start": 75.6,
+      "end": 75.94999999999999
+    },
+    {
+      "word": "material",
+      "start": 75.94999999999999,
+      "end": 76.29999999999998
+    },
+    {
+      "word": "that",
+      "start": 76.29999999999998,
+      "end": 76.64999999999998
+    },
+    {
+      "word": "these",
+      "start": 76.64999999999998,
+      "end": 76.99999999999997
+    },
+    {
+      "word": "air",
+      "start": 76.99999999999997,
+      "end": 77.34999999999997
+    },
+    {
+      "word": "ducts",
+      "start": 77.34999999999997,
+      "end": 77.69999999999996
+    },
+    {
+      "word": "use.",
+      "start": 77.69999999999996,
+      "end": 78.04999999999995
+    },
+    {
+      "word": "So",
+      "start": 78.04999999999995,
+      "end": 78.39999999999995
+    },
+    {
+      "word": "for",
+      "start": 78.39999999999995,
+      "end": 78.74999999999994
+    },
+    {
+      "word": "example,",
+      "start": 78.74999999999994,
+      "end": 79.09999999999994
+    },
+    {
+      "word": "if",
+      "start": 79.09999999999994,
+      "end": 79.44999999999993
+    },
+    {
+      "word": "I",
+      "start": 79.44999999999993,
+      "end": 79.79999999999993
+    },
+    {
+      "word": "select",
+      "start": 79.79999999999993,
+      "end": 80.14999999999992
+    },
+    {
+      "word": "this",
+      "start": 80.14999999999992,
+      "end": 80.49999999999991
+    },
+    {
+      "word": "and",
+      "start": 80.49999999999991,
+      "end": 80.84999999999991
+    },
+    {
+      "word": "I",
+      "start": 80.84999999999991,
+      "end": 81.1999999999999
+    },
+    {
+      "word": "can",
+      "start": 81.1999999999999,
+      "end": 81.5499999999999
+    },
+    {
+      "word": "see",
+      "start": 81.5499999999999,
+      "end": 81.89999999999989
+    },
+    {
+      "word": "that",
+      "start": 81.89999999999989,
+      "end": 82.24999999999989
+    },
+    {
+      "word": "that",
+      "start": 82.24999999999989,
+      "end": 82.59999999999988
+    },
+    {
+      "word": "the",
+      "start": 82.59999999999988,
+      "end": 82.94999999999987
+    },
+    {
+      "word": "in",
+      "start": 82.94999999999987,
+      "end": 83.29999999999987
+    },
+    {
+      "word": "the",
+      "start": 83.29999999999987,
+      "end": 83.64999999999986
+    },
+    {
+      "word": "materials",
+      "start": 83.64999999999986,
+      "end": 83.99999999999986
+    },
+    {
+      "word": "is",
+      "start": 83.99999999999986,
+      "end": 84.34999999999985
+    },
+    {
+      "word": "air",
+      "start": 84.34999999999985,
+      "end": 84.69999999999985
+    },
+    {
+      "word": "ducts",
+      "start": 84.69999999999985,
+      "end": 85.04999999999984
+    },
+    {
+      "word": "B,",
+      "start": 85.04999999999984,
+      "end": 85.39999999999984
+    },
+    {
+      "word": "I",
+      "start": 85.39999999999984,
+      "end": 85.74999999999983
+    },
+    {
+      "word": "can",
+      "start": 85.74999999999983,
+      "end": 86.09999999999982
+    },
+    {
+      "word": "go",
+      "start": 86.09999999999982,
+      "end": 86.44999999999982
+    },
+    {
+      "word": "ahead",
+      "start": 86.44999999999982,
+      "end": 86.79999999999981
+    },
+    {
+      "word": "and",
+      "start": 86.79999999999981,
+      "end": 87.1499999999998
+    },
+    {
+      "word": "select",
+      "start": 87.1499999999998,
+      "end": 87.4999999999998
+    },
+    {
+      "word": "air",
+      "start": 87.4999999999998,
+      "end": 87.8499999999998
+    },
+    {
+      "word": "ducts",
+      "start": 87.8499999999998,
+      "end": 88.19999999999979
+    },
+    {
+      "word": "B,",
+      "start": 88.19999999999979,
+      "end": 88.54999999999978
+    },
+    {
+      "word": "toggle",
+      "start": 88.54999999999978,
+      "end": 88.89999999999978
+    },
+    {
+      "word": "receive",
+      "start": 88.89999999999978,
+      "end": 89.24999999999977
+    },
+    {
+      "word": "SSR,",
+      "start": 89.24999999999977,
+      "end": 89.59999999999977
+    },
+    {
+      "word": "and",
+      "start": 89.59999999999977,
+      "end": 89.94999999999976
+    },
+    {
+      "word": "I",
+      "start": 89.94999999999976,
+      "end": 90.29999999999976
+    },
+    {
+      "word": "can",
+      "start": 90.29999999999976,
+      "end": 90.64999999999975
+    },
+    {
+      "word": "do",
+      "start": 90.64999999999975,
+      "end": 90.99999999999974
+    },
+    {
+      "word": "the",
+      "start": 90.99999999999974,
+      "end": 91.34999999999974
+    },
+    {
+      "word": "same",
+      "start": 91.34999999999974,
+      "end": 91.69999999999973
+    },
+    {
+      "word": "with",
+      "start": 91.69999999999973,
+      "end": 92.04999999999973
+    },
+    {
+      "word": "these",
+      "start": 92.04999999999973,
+      "end": 92.39999999999972
+    },
+    {
+      "word": "materials",
+      "start": 92.39999999999972,
+      "end": 92.74999999999972
+    },
+    {
+      "word": "as",
+      "start": 92.74999999999972,
+      "end": 93.09999999999971
+    },
+    {
+      "word": "well.",
+      "start": 93.09999999999971,
+      "end": 93.4499999999997
+    },
+    {
+      "word": "Enable",
+      "start": 93.4499999999997,
+      "end": 93.7999999999997
+    },
+    {
+      "word": "SSR",
+      "start": 93.7999999999997,
+      "end": 94.1499999999997
+    },
+    {
+      "word": "on",
+      "start": 94.1499999999997,
+      "end": 94.49999999999969
+    },
+    {
+      "word": "all",
+      "start": 94.49999999999969,
+      "end": 94.84999999999968
+    },
+    {
+      "word": "of",
+      "start": 94.84999999999968,
+      "end": 95.19999999999968
+    },
+    {
+      "word": "these",
+      "start": 95.19999999999968,
+      "end": 95.54999999999967
+    },
+    {
+      "word": "air",
+      "start": 95.54999999999967,
+      "end": 95.89999999999966
+    },
+    {
+      "word": "duct",
+      "start": 95.89999999999966,
+      "end": 96.24999999999966
+    },
+    {
+      "word": "materials",
+      "start": 96.24999999999966,
+      "end": 96.59999999999965
+    },
+    {
+      "word": "and",
+      "start": 96.59999999999965,
+      "end": 96.94999999999965
+    },
+    {
+      "word": "now",
+      "start": 96.94999999999965,
+      "end": 97.29999999999964
+    },
+    {
+      "word": "if",
+      "start": 97.29999999999964,
+      "end": 97.64999999999964
+    },
+    {
+      "word": "I",
+      "start": 97.64999999999964,
+      "end": 97.99999999999963
+    },
+    {
+      "word": "go",
+      "start": 97.99999999999963,
+      "end": 98.34999999999962
+    },
+    {
+      "word": "into",
+      "start": 98.34999999999962,
+      "end": 98.69999999999962
+    },
+    {
+      "word": "my",
+      "start": 98.69999999999962,
+      "end": 99.04999999999961
+    },
+    {
+      "word": "volume",
+      "start": 99.04999999999961,
+      "end": 99.39999999999961
+    },
+    {
+      "word": "here",
+      "start": 99.39999999999961,
+      "end": 99.7499999999996
+    },
+    {
+      "word": "and",
+      "start": 99.7499999999996,
+      "end": 100.0999999999996
+    },
+    {
+      "word": "I",
+      "start": 100.0999999999996,
+      "end": 100.44999999999959
+    },
+    {
+      "word": "start",
+      "start": 100.44999999999959,
+      "end": 100.79999999999959
+    },
+    {
+      "word": "messing",
+      "start": 100.79999999999959,
+      "end": 101.14999999999958
+    },
+    {
+      "word": "around",
+      "start": 101.14999999999958,
+      "end": 101.49999999999957
+    },
+    {
+      "word": "with",
+      "start": 101.49999999999957,
+      "end": 101.84999999999957
+    },
+    {
+      "word": "the",
+      "start": 101.84999999999957,
+      "end": 102.19999999999956
+    },
+    {
+      "word": "screen",
+      "start": 102.19999999999956,
+      "end": 102.54999999999956
+    },
+    {
+      "word": "space",
+      "start": 102.54999999999956,
+      "end": 102.89999999999955
+    },
+    {
+      "word": "reflection",
+      "start": 102.89999999999955,
+      "end": 103.24999999999955
+    },
+    {
+      "word": "settings",
+      "start": 103.24999999999955,
+      "end": 103.59999999999954
+    },
+    {
+      "word": "I",
+      "start": 103.59999999999954,
+      "end": 103.94999999999953
+    },
+    {
+      "word": "can",
+      "start": 103.94999999999953,
+      "end": 104.29999999999953
+    },
+    {
+      "word": "start",
+      "start": 104.29999999999953,
+      "end": 104.64999999999952
+    },
+    {
+      "word": "getting",
+      "start": 104.64999999999952,
+      "end": 104.99999999999952
+    },
+    {
+      "word": "these",
+      "start": 104.99999999999952,
+      "end": 105.34999999999951
+    },
+    {
+      "word": "air",
+      "start": 105.34999999999951,
+      "end": 105.6999999999995
+    },
+    {
+      "word": "ducts",
+      "start": 105.6999999999995,
+      "end": 106.0499999999995
+    },
+    {
+      "word": "to",
+      "start": 106.0499999999995,
+      "end": 106.3999999999995
+    },
+    {
+      "word": "reflect",
+      "start": 106.3999999999995,
+      "end": 106.74999999999949
+    },
+    {
+      "word": "light",
+      "start": 106.74999999999949,
+      "end": 107.09999999999948
+    },
+    {
+      "word": "using",
+      "start": 107.09999999999948,
+      "end": 107.44999999999948
+    },
+    {
+      "word": "the",
+      "start": 107.44999999999948,
+      "end": 107.79999999999947
+    },
+    {
+      "word": "scene",
+      "start": 107.79999999999947,
+      "end": 108.14999999999947
+    },
+    {
+      "word": "itself",
+      "start": 108.14999999999947,
+      "end": 108.49999999999946
+    },
+    {
+      "word": "rather",
+      "start": 108.49999999999946,
+      "end": 108.84999999999945
+    },
+    {
+      "word": "than",
+      "start": 108.84999999999945,
+      "end": 109.19999999999945
+    },
+    {
+      "word": "reflection",
+      "start": 109.19999999999945,
+      "end": 109.54999999999944
+    },
+    {
+      "word": "probes.",
+      "start": 109.54999999999944,
+      "end": 109.89999999999944
+    },
+    {
+      "word": "We",
+      "start": 109.89999999999944,
+      "end": 110.24999999999943
+    },
+    {
+      "word": "can",
+      "start": 110.24999999999943,
+      "end": 110.59999999999943
+    },
+    {
+      "word": "change",
+      "start": 110.59999999999943,
+      "end": 110.94999999999942
+    },
+    {
+      "word": "the",
+      "start": 110.94999999999942,
+      "end": 111.29999999999941
+    },
+    {
+      "word": "amount",
+      "start": 111.29999999999941,
+      "end": 111.64999999999941
+    },
+    {
+      "word": "of",
+      "start": 111.64999999999941,
+      "end": 111.9999999999994
+    },
+    {
+      "word": "smoothness.",
+      "start": 111.9999999999994,
+      "end": 112.3499999999994
+    },
+    {
+      "word": "Minimum",
+      "start": 112.3499999999994,
+      "end": 112.69999999999939
+    },
+    {
+      "word": "smoothness",
+      "start": 112.69999999999939,
+      "end": 113.04999999999939
+    },
+    {
+      "word": "determines",
+      "start": 113.04999999999939,
+      "end": 113.39999999999938
+    },
+    {
+      "word": "how",
+      "start": 113.39999999999938,
+      "end": 113.74999999999937
+    },
+    {
+      "word": "smooth",
+      "start": 113.74999999999937,
+      "end": 114.09999999999937
+    },
+    {
+      "word": "an",
+      "start": 114.09999999999937,
+      "end": 114.44999999999936
+    },
+    {
+      "word": "object",
+      "start": 114.44999999999936,
+      "end": 114.79999999999936
+    },
+    {
+      "word": "must",
+      "start": 114.79999999999936,
+      "end": 115.14999999999935
+    },
+    {
+      "word": "be",
+      "start": 115.14999999999935,
+      "end": 115.49999999999935
+    },
+    {
+      "word": "for",
+      "start": 115.49999999999935,
+      "end": 115.84999999999934
+    },
+    {
+      "word": "SSR",
+      "start": 115.84999999999934,
+      "end": 116.19999999999933
+    },
+    {
+      "word": "to",
+      "start": 116.19999999999933,
+      "end": 116.54999999999933
+    },
+    {
+      "word": "be",
+      "start": 116.54999999999933,
+      "end": 116.89999999999932
+    },
+    {
+      "word": "applied.",
+      "start": 116.89999999999932,
+      "end": 117.24999999999932
+    },
+    {
+      "word": "Objects",
+      "start": 117.24999999999932,
+      "end": 117.59999999999931
+    },
+    {
+      "word": "below",
+      "start": 117.59999999999931,
+      "end": 117.9499999999993
+    },
+    {
+      "word": "this",
+      "start": 117.9499999999993,
+      "end": 118.2999999999993
+    },
+    {
+      "word": "minimum",
+      "start": 118.2999999999993,
+      "end": 118.6499999999993
+    },
+    {
+      "word": "use",
+      "start": 118.6499999999993,
+      "end": 118.99999999999929
+    },
+    {
+      "word": "another",
+      "start": 118.99999999999929,
+      "end": 119.34999999999928
+    },
+    {
+      "word": "reflection",
+      "start": 119.34999999999928,
+      "end": 119.69999999999928
+    },
+    {
+      "word": "method",
+      "start": 119.69999999999928,
+      "end": 120.04999999999927
+    },
+    {
+      "word": "such",
+      "start": 120.04999999999927,
+      "end": 120.39999999999927
+    },
+    {
+      "word": "as",
+      "start": 120.39999999999927,
+      "end": 120.74999999999926
+    },
+    {
+      "word": "probes.",
+      "start": 120.74999999999926,
+      "end": 121.09999999999926
+    },
+    {
+      "word": "The",
+      "start": 121.09999999999926,
+      "end": 121.44999999999925
+    },
+    {
+      "word": "smoothness",
+      "start": 121.44999999999925,
+      "end": 121.79999999999924
+    },
+    {
+      "word": "fade",
+      "start": 121.79999999999924,
+      "end": 122.14999999999924
+    },
+    {
+      "word": "start",
+      "start": 122.14999999999924,
+      "end": 122.49999999999923
+    },
+    {
+      "word": "will",
+      "start": 122.49999999999923,
+      "end": 122.84999999999923
+    },
+    {
+      "word": "set",
+      "start": 122.84999999999923,
+      "end": 123.19999999999922
+    },
+    {
+      "word": "the",
+      "start": 123.19999999999922,
+      "end": 123.54999999999922
+    },
+    {
+      "word": "smoothness",
+      "start": 123.54999999999922,
+      "end": 123.89999999999921
+    },
+    {
+      "word": "value",
+      "start": 123.89999999999921,
+      "end": 124.2499999999992
+    },
+    {
+      "word": "at",
+      "start": 124.2499999999992,
+      "end": 124.5999999999992
+    },
+    {
+      "word": "which",
+      "start": 124.5999999999992,
+      "end": 124.94999999999919
+    },
+    {
+      "word": "SSR",
+      "start": 124.94999999999919,
+      "end": 125.29999999999919
+    },
+    {
+      "word": "reflections",
+      "start": 125.29999999999919,
+      "end": 125.64999999999918
+    },
+    {
+      "word": "begin",
+      "start": 125.64999999999918,
+      "end": 125.99999999999918
+    },
+    {
+      "word": "to",
+      "start": 125.99999999999918,
+      "end": 126.34999999999917
+    },
+    {
+      "word": "fade",
+      "start": 126.34999999999917,
+      "end": 126.69999999999916
+    },
+    {
+      "word": "out.",
+      "start": 126.69999999999916,
+      "end": 127.04999999999916
+    },
+    {
+      "word": "Lower",
+      "start": 127.04999999999916,
+      "end": 127.39999999999915
+    },
+    {
+      "word": "values",
+      "start": 127.39999999999915,
+      "end": 127.74999999999915
+    },
+    {
+      "word": "results",
+      "start": 127.74999999999915,
+      "end": 128.09999999999914
+    },
+    {
+      "word": "in",
+      "start": 128.09999999999914,
+      "end": 128.44999999999914
+    },
+    {
+      "word": "HDRP",
+      "start": 128.44999999999914,
+      "end": 128.79999999999913
+    },
+    {
+      "word": "fading",
+      "start": 128.79999999999913,
+      "end": 129.14999999999912
+    },
+    {
+      "word": "out",
+      "start": 129.14999999999912,
+      "end": 129.49999999999912
+    },
+    {
+      "word": "SSR",
+      "start": 129.49999999999912,
+      "end": 129.8499999999991
+    },
+    {
+      "word": "reflections",
+      "start": 129.8499999999991,
+      "end": 130.1999999999991
+    },
+    {
+      "word": "for",
+      "start": 130.1999999999991,
+      "end": 130.5499999999991
+    },
+    {
+      "word": "less",
+      "start": 130.5499999999991,
+      "end": 130.8999999999991
+    },
+    {
+      "word": "smooth",
+      "start": 130.8999999999991,
+      "end": 131.2499999999991
+    },
+    {
+      "word": "game",
+      "start": 131.2499999999991,
+      "end": 131.59999999999908
+    },
+    {
+      "word": "objects.",
+      "start": 131.59999999999908,
+      "end": 131.94999999999908
+    },
+    {
+      "word": "We",
+      "start": 131.94999999999908,
+      "end": 132.29999999999907
+    },
+    {
+      "word": "have",
+      "start": 132.29999999999907,
+      "end": 132.64999999999907
+    },
+    {
+      "word": "some",
+      "start": 132.64999999999907,
+      "end": 132.99999999999906
+    },
+    {
+      "word": "other",
+      "start": 132.99999999999906,
+      "end": 133.34999999999906
+    },
+    {
+      "word": "settings",
+      "start": 133.34999999999906,
+      "end": 133.69999999999905
+    },
+    {
+      "word": "here",
+      "start": 133.69999999999905,
+      "end": 134.04999999999905
+    },
+    {
+      "word": "such",
+      "start": 134.04999999999905,
+      "end": 134.39999999999904
+    },
+    {
+      "word": "as",
+      "start": 134.39999999999904,
+      "end": 134.74999999999903
+    },
+    {
+      "word": "the",
+      "start": 134.74999999999903,
+      "end": 135.09999999999903
+    },
+    {
+      "word": "ability",
+      "start": 135.09999999999903,
+      "end": 135.44999999999902
+    },
+    {
+      "word": "to",
+      "start": 135.44999999999902,
+      "end": 135.79999999999902
+    },
+    {
+      "word": "reflect",
+      "start": 135.79999999999902,
+      "end": 136.149999999999
+    },
+    {
+      "word": "the",
+      "start": 136.149999999999,
+      "end": 136.499999999999
+    },
+    {
+      "word": "sky,",
+      "start": 136.499999999999,
+      "end": 136.849999999999
+    },
+    {
+      "word": "the",
+      "start": 136.849999999999,
+      "end": 137.199999999999
+    },
+    {
+      "word": "screen",
+      "start": 137.199999999999,
+      "end": 137.549999999999
+    },
+    {
+      "word": "edge",
+      "start": 137.549999999999,
+      "end": 137.89999999999898
+    },
+    {
+      "word": "fade",
+      "start": 137.89999999999898,
+      "end": 138.24999999999898
+    },
+    {
+      "word": "distance,",
+      "start": 138.24999999999898,
+      "end": 138.59999999999897
+    },
+    {
+      "word": "as",
+      "start": 138.59999999999897,
+      "end": 138.94999999999897
+    },
+    {
+      "word": "well",
+      "start": 138.94999999999897,
+      "end": 139.29999999999896
+    },
+    {
+      "word": "as",
+      "start": 139.29999999999896,
+      "end": 139.64999999999895
+    },
+    {
+      "word": "the",
+      "start": 139.64999999999895,
+      "end": 139.99999999999895
+    },
+    {
+      "word": "object",
+      "start": 139.99999999999895,
+      "end": 140.34999999999894
+    },
+    {
+      "word": "thickness.",
+      "start": 140.34999999999894,
+      "end": 140.69999999999894
+    },
+    {
+      "word": "This",
+      "start": 140.69999999999894,
+      "end": 141.04999999999893
+    },
+    {
+      "word": "controls",
+      "start": 141.04999999999893,
+      "end": 141.39999999999893
+    },
+    {
+      "word": "how",
+      "start": 141.39999999999893,
+      "end": 141.74999999999892
+    },
+    {
+      "word": "thick",
+      "start": 141.74999999999892,
+      "end": 142.09999999999891
+    },
+    {
+      "word": "objects",
+      "start": 142.09999999999891,
+      "end": 142.4499999999989
+    },
+    {
+      "word": "are",
+      "start": 142.4499999999989,
+      "end": 142.7999999999989
+    },
+    {
+      "word": "inside",
+      "start": 142.7999999999989,
+      "end": 143.1499999999989
+    },
+    {
+      "word": "of",
+      "start": 143.1499999999989,
+      "end": 143.4999999999989
+    },
+    {
+      "word": "your",
+      "start": 143.4999999999989,
+      "end": 143.8499999999989
+    },
+    {
+      "word": "scene.",
+      "start": 143.8499999999989,
+      "end": 144.19999999999888
+    },
+    {
+      "word": "So",
+      "start": 144.19999999999888,
+      "end": 144.54999999999887
+    },
+    {
+      "word": "if",
+      "start": 144.54999999999887,
+      "end": 144.89999999999887
+    },
+    {
+      "word": "I",
+      "start": 144.89999999999887,
+      "end": 145.24999999999886
+    },
+    {
+      "word": "set",
+      "start": 145.24999999999886,
+      "end": 145.59999999999886
+    },
+    {
+      "word": "this",
+      "start": 145.59999999999886,
+      "end": 145.94999999999885
+    },
+    {
+      "word": "thickness",
+      "start": 145.94999999999885,
+      "end": 146.29999999999885
+    },
+    {
+      "word": "to",
+      "start": 146.29999999999885,
+      "end": 146.64999999999884
+    },
+    {
+      "word": "one,",
+      "start": 146.64999999999884,
+      "end": 146.99999999999883
+    },
+    {
+      "word": "we'll",
+      "start": 146.99999999999883,
+      "end": 147.34999999999883
+    },
+    {
+      "word": "see",
+      "start": 147.34999999999883,
+      "end": 147.69999999999882
+    },
+    {
+      "word": "more",
+      "start": 147.69999999999882,
+      "end": 148.04999999999882
+    },
+    {
+      "word": "reflections",
+      "start": 148.04999999999882,
+      "end": 148.3999999999988
+    },
+    {
+      "word": "on",
+      "start": 148.3999999999988,
+      "end": 148.7499999999988
+    },
+    {
+      "word": "our",
+      "start": 148.7499999999988,
+      "end": 149.0999999999988
+    },
+    {
+      "word": "ducks",
+      "start": 149.0999999999988,
+      "end": 149.4499999999988
+    },
+    {
+      "word": "here",
+      "start": 149.4499999999988,
+      "end": 149.7999999999988
+    },
+    {
+      "word": "because",
+      "start": 149.7999999999988,
+      "end": 150.14999999999878
+    },
+    {
+      "word": "the",
+      "start": 150.14999999999878,
+      "end": 150.49999999999878
+    },
+    {
+      "word": "rays",
+      "start": 150.49999999999878,
+      "end": 150.84999999999877
+    },
+    {
+      "word": "are",
+      "start": 150.84999999999877,
+      "end": 151.19999999999877
+    },
+    {
+      "word": "not",
+      "start": 151.19999999999877,
+      "end": 151.54999999999876
+    },
+    {
+      "word": "passing",
+      "start": 151.54999999999876,
+      "end": 151.89999999999876
+    },
+    {
+      "word": "through",
+      "start": 151.89999999999876,
+      "end": 152.24999999999875
+    },
+    {
+      "word": "them",
+      "start": 152.24999999999875,
+      "end": 152.59999999999874
+    },
+    {
+      "word": "as",
+      "start": 152.59999999999874,
+      "end": 152.94999999999874
+    },
+    {
+      "word": "much.",
+      "start": 152.94999999999874,
+      "end": 153.29999999999873
+    },
+    {
+      "word": "Additionally,",
+      "start": 153.29999999999873,
+      "end": 153.64999999999873
+    },
+    {
+      "word": "we",
+      "start": 153.64999999999873,
+      "end": 153.99999999999872
+    },
+    {
+      "word": "also",
+      "start": 153.99999999999872,
+      "end": 154.34999999999872
+    },
+    {
+      "word": "have",
+      "start": 154.34999999999872,
+      "end": 154.6999999999987
+    },
+    {
+      "word": "some",
+      "start": 154.6999999999987,
+      "end": 155.0499999999987
+    },
+    {
+      "word": "quality",
+      "start": 155.0499999999987,
+      "end": 155.3999999999987
+    },
+    {
+      "word": "settings",
+      "start": 155.3999999999987,
+      "end": 155.7499999999987
+    },
+    {
+      "word": "here.",
+      "start": 155.7499999999987,
+      "end": 156.0999999999987
+    },
+    {
+      "word": "So",
+      "start": 156.0999999999987,
+      "end": 156.44999999999868
+    },
+    {
+      "word": "I",
+      "start": 156.44999999999868,
+      "end": 156.79999999999868
+    },
+    {
+      "word": "can",
+      "start": 156.79999999999868,
+      "end": 157.14999999999867
+    },
+    {
+      "word": "set",
+      "start": 157.14999999999867,
+      "end": 157.49999999999866
+    },
+    {
+      "word": "this",
+      "start": 157.49999999999866,
+      "end": 157.84999999999866
+    },
+    {
+      "word": "to",
+      "start": 157.84999999999866,
+      "end": 158.19999999999865
+    },
+    {
+      "word": "high",
+      "start": 158.19999999999865,
+      "end": 158.54999999999865
+    },
+    {
+      "word": "quality",
+      "start": 158.54999999999865,
+      "end": 158.89999999999864
+    },
+    {
+      "word": "to",
+      "start": 158.89999999999864,
+      "end": 159.24999999999864
+    },
+    {
+      "word": "get",
+      "start": 159.24999999999864,
+      "end": 159.59999999999863
+    },
+    {
+      "word": "a",
+      "start": 159.59999999999863,
+      "end": 159.94999999999862
+    },
+    {
+      "word": "bit",
+      "start": 159.94999999999862,
+      "end": 160.29999999999862
+    },
+    {
+      "word": "of",
+      "start": 160.29999999999862,
+      "end": 160.6499999999986
+    },
+    {
+      "word": "a",
+      "start": 160.6499999999986,
+      "end": 160.9999999999986
+    },
+    {
+      "word": "better",
+      "start": 160.9999999999986,
+      "end": 161.3499999999986
+    },
+    {
+      "word": "reflection.",
+      "start": 161.3499999999986,
+      "end": 161.6999999999986
+    },
+    {
+      "word": "And",
+      "start": 161.6999999999986,
+      "end": 162.0499999999986
+    },
+    {
+      "word": "we",
+      "start": 162.0499999999986,
+      "end": 162.39999999999858
+    },
+    {
+      "word": "can",
+      "start": 162.39999999999858,
+      "end": 162.74999999999858
+    },
+    {
+      "word": "also",
+      "start": 162.74999999999858,
+      "end": 163.09999999999857
+    },
+    {
+      "word": "change",
+      "start": 163.09999999999857,
+      "end": 163.44999999999857
+    },
+    {
+      "word": "the",
+      "start": 163.44999999999857,
+      "end": 163.79999999999856
+    },
+    {
+      "word": "algorithm",
+      "start": 163.79999999999856,
+      "end": 164.14999999999856
+    },
+    {
+      "word": "as",
+      "start": 164.14999999999856,
+      "end": 164.49999999999855
+    },
+    {
+      "word": "well,",
+      "start": 164.49999999999855,
+      "end": 164.84999999999854
+    },
+    {
+      "word": "from",
+      "start": 164.84999999999854,
+      "end": 165.19999999999854
+    },
+    {
+      "word": "approximation",
+      "start": 165.19999999999854,
+      "end": 165.54999999999853
+    },
+    {
+      "word": "to",
+      "start": 165.54999999999853,
+      "end": 165.89999999999853
+    },
+    {
+      "word": "PBR",
+      "start": 165.89999999999853,
+      "end": 166.24999999999852
+    },
+    {
+      "word": "accumulation.",
+      "start": 166.24999999999852,
+      "end": 166.59999999999852
+    },
+    {
+      "word": "Approximation",
+      "start": 166.59999999999852,
+      "end": 166.9499999999985
+    },
+    {
+      "word": "is",
+      "start": 166.9499999999985,
+      "end": 167.2999999999985
+    },
+    {
+      "word": "a",
+      "start": 167.2999999999985,
+      "end": 167.6499999999985
+    },
+    {
+      "word": "quicker",
+      "start": 167.6499999999985,
+      "end": 167.9999999999985
+    },
+    {
+      "word": "algorithm,",
+      "start": 167.9999999999985,
+      "end": 168.3499999999985
+    },
+    {
+      "word": "which",
+      "start": 168.3499999999985,
+      "end": 168.69999999999848
+    },
+    {
+      "word": "results",
+      "start": 168.69999999999848,
+      "end": 169.04999999999848
+    },
+    {
+      "word": "in",
+      "start": 169.04999999999848,
+      "end": 169.39999999999847
+    },
+    {
+      "word": "less",
+      "start": 169.39999999999847,
+      "end": 169.74999999999847
+    },
+    {
+      "word": "resources",
+      "start": 169.74999999999847,
+      "end": 170.09999999999846
+    },
+    {
+      "word": "used,",
+      "start": 170.09999999999846,
+      "end": 170.44999999999845
+    },
+    {
+      "word": "but",
+      "start": 170.44999999999845,
+      "end": 170.79999999999845
+    },
+    {
+      "word": "it's",
+      "start": 170.79999999999845,
+      "end": 171.14999999999844
+    },
+    {
+      "word": "not",
+      "start": 171.14999999999844,
+      "end": 171.49999999999844
+    },
+    {
+      "word": "as",
+      "start": 171.49999999999844,
+      "end": 171.84999999999843
+    },
+    {
+      "word": "accurate",
+      "start": 171.84999999999843,
+      "end": 172.19999999999843
+    },
+    {
+      "word": "for",
+      "start": 172.19999999999843,
+      "end": 172.54999999999842
+    },
+    {
+      "word": "rough",
+      "start": 172.54999999999842,
+      "end": 172.8999999999984
+    },
+    {
+      "word": "surfaces.",
+      "start": 172.8999999999984,
+      "end": 173.2499999999984
+    },
+    {
+      "word": "Something",
+      "start": 173.2499999999984,
+      "end": 173.5999999999984
+    },
+    {
+      "word": "like",
+      "start": 173.5999999999984,
+      "end": 173.9499999999984
+    },
+    {
+      "word": "PBR",
+      "start": 173.9499999999984,
+      "end": 174.2999999999984
+    },
+    {
+      "word": "accumulation",
+      "start": 174.2999999999984,
+      "end": 174.64999999999839
+    },
+    {
+      "word": "accumulates",
+      "start": 174.64999999999839,
+      "end": 174.99999999999838
+    },
+    {
+      "word": "multiple",
+      "start": 174.99999999999838,
+      "end": 175.34999999999837
+    },
+    {
+      "word": "frames",
+      "start": 175.34999999999837,
+      "end": 175.69999999999837
+    },
+    {
+      "word": "to",
+      "start": 175.69999999999837,
+      "end": 176.04999999999836
+    },
+    {
+      "word": "generate",
+      "start": 176.04999999999836,
+      "end": 176.39999999999836
+    },
+    {
+      "word": "a",
+      "start": 176.39999999999836,
+      "end": 176.74999999999835
+    },
+    {
+      "word": "more",
+      "start": 176.74999999999835,
+      "end": 177.09999999999835
+    },
+    {
+      "word": "accurate",
+      "start": 177.09999999999835,
+      "end": 177.44999999999834
+    },
+    {
+      "word": "result.",
+      "start": 177.44999999999834,
+      "end": 177.79999999999833
+    },
+    {
+      "word": "And",
+      "start": 177.79999999999833,
+      "end": 178.14999999999833
+    },
+    {
+      "word": "we",
+      "start": 178.14999999999833,
+      "end": 178.49999999999832
+    },
+    {
+      "word": "can",
+      "start": 178.49999999999832,
+      "end": 178.84999999999832
+    },
+    {
+      "word": "control",
+      "start": 178.84999999999832,
+      "end": 179.1999999999983
+    },
+    {
+      "word": "the",
+      "start": 179.1999999999983,
+      "end": 179.5499999999983
+    },
+    {
+      "word": "amount",
+      "start": 179.5499999999983,
+      "end": 179.8999999999983
+    },
+    {
+      "word": "of",
+      "start": 179.8999999999983,
+      "end": 180.2499999999983
+    },
+    {
+      "word": "accumulation",
+      "start": 180.2499999999983,
+      "end": 180.5999999999983
+    },
+    {
+      "word": "using",
+      "start": 180.5999999999983,
+      "end": 180.94999999999828
+    },
+    {
+      "word": "this",
+      "start": 180.94999999999828,
+      "end": 181.29999999999828
+    },
+    {
+      "word": "accumulation",
+      "start": 181.29999999999828,
+      "end": 181.64999999999827
+    },
+    {
+      "word": "factor.",
+      "start": 181.64999999999827,
+      "end": 181.99999999999827
+    },
+    {
+      "word": "This",
+      "start": 181.99999999999827,
+      "end": 182.34999999999826
+    },
+    {
+      "word": "gives",
+      "start": 182.34999999999826,
+      "end": 182.69999999999825
+    },
+    {
+      "word": "a",
+      "start": 182.69999999999825,
+      "end": 183.04999999999825
+    },
+    {
+      "word": "more",
+      "start": 183.04999999999825,
+      "end": 183.39999999999824
+    },
+    {
+      "word": "accurate",
+      "start": 183.39999999999824,
+      "end": 183.74999999999824
+    },
+    {
+      "word": "result,",
+      "start": 183.74999999999824,
+      "end": 184.09999999999823
+    },
+    {
+      "word": "but",
+      "start": 184.09999999999823,
+      "end": 184.44999999999823
+    },
+    {
+      "word": "it",
+      "start": 184.44999999999823,
+      "end": 184.79999999999822
+    },
+    {
+      "word": "is",
+      "start": 184.79999999999822,
+      "end": 185.14999999999822
+    },
+    {
+      "word": "resource",
+      "start": 185.14999999999822,
+      "end": 185.4999999999982
+    },
+    {
+      "word": "intensive,",
+      "start": 185.4999999999982,
+      "end": 185.8499999999982
+    },
+    {
+      "word": "and",
+      "start": 185.8499999999982,
+      "end": 186.1999999999982
+    },
+    {
+      "word": "it",
+      "start": 186.1999999999982,
+      "end": 186.5499999999982
+    },
+    {
+      "word": "can",
+      "start": 186.5499999999982,
+      "end": 186.8999999999982
+    },
+    {
+      "word": "lead",
+      "start": 186.8999999999982,
+      "end": 187.24999999999818
+    },
+    {
+      "word": "to",
+      "start": 187.24999999999818,
+      "end": 187.59999999999818
+    },
+    {
+      "word": "some",
+      "start": 187.59999999999818,
+      "end": 187.94999999999817
+    },
+    {
+      "word": "ghosting.",
+      "start": 187.94999999999817,
+      "end": 188.29999999999816
+    },
+    {
+      "word": "Additionally,",
+      "start": 188.29999999999816,
+      "end": 188.64999999999816
+    },
+    {
+      "word": "this",
+      "start": 188.64999999999816,
+      "end": 188.99999999999815
+    },
+    {
+      "word": "algorithm",
+      "start": 188.99999999999815,
+      "end": 189.34999999999815
+    },
+    {
+      "word": "cannot",
+      "start": 189.34999999999815,
+      "end": 189.69999999999814
+    },
+    {
+      "word": "be",
+      "start": 189.69999999999814,
+      "end": 190.04999999999814
+    },
+    {
+      "word": "used",
+      "start": 190.04999999999814,
+      "end": 190.39999999999813
+    },
+    {
+      "word": "on",
+      "start": 190.39999999999813,
+      "end": 190.74999999999812
+    },
+    {
+      "word": "transparent",
+      "start": 190.74999999999812,
+      "end": 191.09999999999812
+    },
+    {
+      "word": "materials,",
+      "start": 191.09999999999812,
+      "end": 191.4499999999981
+    },
+    {
+      "word": "as",
+      "start": 191.4499999999981,
+      "end": 191.7999999999981
+    },
+    {
+      "word": "those",
+      "start": 191.7999999999981,
+      "end": 192.1499999999981
+    },
+    {
+      "word": "will",
+      "start": 192.1499999999981,
+      "end": 192.4999999999981
+    },
+    {
+      "word": "always",
+      "start": 192.4999999999981,
+      "end": 192.8499999999981
+    },
+    {
+      "word": "use",
+      "start": 192.8499999999981,
+      "end": 193.19999999999808
+    },
+    {
+      "word": "approximation.",
+      "start": 193.19999999999808,
+      "end": 193.54999999999808
+    },
+    {
+      "word": "In",
+      "start": 193.54999999999808,
+      "end": 193.89999999999807
+    },
+    {
+      "word": "the",
+      "start": 193.89999999999807,
+      "end": 194.24999999999807
+    },
+    {
+      "word": "next",
+      "start": 194.24999999999807,
+      "end": 194.59999999999806
+    },
+    {
+      "word": "module,",
+      "start": 194.59999999999806,
+      "end": 194.94999999999806
+    },
+    {
+      "word": "we'll",
+      "start": 194.94999999999806,
+      "end": 195.29999999999805
+    },
+    {
+      "word": "begin",
+      "start": 195.29999999999805,
+      "end": 195.64999999999804
+    },
+    {
+      "word": "talking",
+      "start": 195.64999999999804,
+      "end": 195.99999999999804
+    },
+    {
+      "word": "about",
+      "start": 195.99999999999804,
+      "end": 196.34999999999803
+    },
+    {
+      "word": "the",
+      "start": 196.34999999999803,
+      "end": 196.69999999999803
+    },
+    {
+      "word": "basics",
+      "start": 196.69999999999803,
+      "end": 197.04999999999802
+    },
+    {
+      "word": "of",
+      "start": 197.04999999999802,
+      "end": 197.39999999999802
+    },
+    {
+      "word": "lighting",
+      "start": 197.39999999999802,
+      "end": 197.749999999998
+    },
+    {
+      "word": "inside",
+      "start": 197.749999999998,
+      "end": 198.099999999998
+    },
+    {
+      "word": "of",
+      "start": 198.099999999998,
+      "end": 198.449999999998
+    },
+    {
+      "word": "HDRP",
+      "start": 198.449999999998,
+      "end": 198.799999999998
+    },
+    {
+      "word": "by",
+      "start": 198.799999999998,
+      "end": 199.149999999998
+    },
+    {
+      "word": "learning",
+      "start": 199.149999999998,
+      "end": 199.49999999999798
+    },
+    {
+      "word": "about",
+      "start": 199.49999999999798,
+      "end": 199.84999999999798
+    },
+    {
+      "word": "the",
+      "start": 199.84999999999798,
+      "end": 200.19999999999797
+    },
+    {
+      "word": "different",
+      "start": 200.19999999999797,
+      "end": 200.54999999999797
+    },
+    {
+      "word": "light",
+      "start": 200.54999999999797,
+      "end": 200.89999999999796
+    },
+    {
+      "word": "types.",
+      "start": 200.89999999999796,
+      "end": 201.24999999999795
+    }
+  ],
+  "segments_count": 51,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 4.85,
+      "text": "In this video, we're going to go over screen space reflections, which is a"
+    },
+    {
+      "start": 4.8999999999999995,
+      "end": 8.349999999999996,
+      "text": "complex topic that deserves a little bit more time for"
+    },
+    {
+      "start": 8.399999999999997,
+      "end": 12.399999999999997,
+      "text": "discussion. Screen space reflections allow you to calculate reflections from the"
+    },
+    {
+      "start": 12.449999999999998,
+      "end": 16.8542042042042,
+      "text": "scene in real time without needing to use reflection probes, which we cover in"
+    },
+    {
+      "start": 17.149999999999995,
+      "end": 22.000000000000014,
+      "text": "the next module. This is a very intense effect, so reflection probes are the"
+    },
+    {
+      "start": 22.050000000000015,
+      "end": 26.20000000000003,
+      "text": "more performant option, but screen space reflections are an option if you're"
+    },
+    {
+      "start": 26.250000000000032,
+      "end": 30.40000000000005,
+      "text": "targeting very high-end devices. You're going to see this effect mostly on"
+    },
+    {
+      "start": 30.45000000000005,
+      "end": 32.35150150150155,
+      "text": "water, metallics, and other reflective"
+    },
+    {
+      "start": 32.40150150150155,
+      "end": 36.40510510510515,
+      "text": "materials. Once we've added screen space reflections onto our volume, let's take"
+    },
+    {
+      "start": 36.45510510510515,
+      "end": 41.059309309309356,
+      "text": "a look at it in action. Right now in our evening A scene here,"
+    },
+    {
+      "start": 41.30000000000009,
+      "end": 45.10000000000011,
+      "text": "the main thing that uses reflections are these air ducts above"
+    },
+    {
+      "start": 45.150000000000105,
+      "end": 50.00000000000013,
+      "text": "us. If I were to disable these reflection probes, we can see the color"
+    },
+    {
+      "start": 50.050000000000125,
+      "end": 54.550000000000146,
+      "text": "of these air ducts completely change, since after all these ducts are metallic"
+    },
+    {
+      "start": 54.60000000000014,
+      "end": 57.70000000000016,
+      "text": "and they reflect the light from the office around"
+    },
+    {
+      "start": 57.750000000000156,
+      "end": 61.900000000000176,
+      "text": "it. These reflection probes approximate the amount of light that the metallic"
+    },
+    {
+      "start": 61.95000000000017,
+      "end": 64.00000000000018,
+      "text": "air ducts are going to give"
+    },
+    {
+      "start": 64.05000000000018,
+      "end": 68.9000000000001,
+      "text": "off. Let's say I want to completely do away with reflection probes and have"
+    },
+    {
+      "start": 68.9500000000001,
+      "end": 71.7000000000001,
+      "text": "these use screen space reflections to approximate their"
+    },
+    {
+      "start": 71.75000000000006,
+      "end": 76.59999999999998,
+      "text": "reflection. What we can do is we can come over to the material that"
+    },
+    {
+      "start": 76.64999999999998,
+      "end": 81.4999999999999,
+      "text": "these air ducts use. So for example, if I select this and I can"
+    },
+    {
+      "start": 81.5499999999999,
+      "end": 86.39999999999982,
+      "text": "see that that the in the materials is air ducts B, I can go"
+    },
+    {
+      "start": 86.44999999999982,
+      "end": 91.29999999999974,
+      "text": "ahead and select air ducts B, toggle receive SSR, and I can do the"
+    },
+    {
+      "start": 91.34999999999974,
+      "end": 93.04999999999971,
+      "text": "same with these materials as"
+    },
+    {
+      "start": 93.09999999999971,
+      "end": 97.94999999999963,
+      "text": "well. Enable SSR on all of these air duct materials and now if I"
+    },
+    {
+      "start": 97.99999999999963,
+      "end": 102.84999999999955,
+      "text": "go into my volume here and I start messing around with the screen space"
+    },
+    {
+      "start": 102.89999999999955,
+      "end": 107.39999999999948,
+      "text": "reflection settings I can start getting these air ducts to reflect light using"
+    },
+    {
+      "start": 107.44999999999948,
+      "end": 109.49999999999945,
+      "text": "the scene itself rather than reflection"
+    },
+    {
+      "start": 109.54999999999944,
+      "end": 111.9499999999994,
+      "text": "probes. We can change the amount of"
+    },
+    {
+      "start": 111.9999999999994,
+      "end": 116.14999999999934,
+      "text": "smoothness. Minimum smoothness determines how smooth an object must be for SSR"
+    },
+    {
+      "start": 116.19999999999933,
+      "end": 120.69999999999926,
+      "text": "to be applied. Objects below this minimum use another reflection method such as"
+    },
+    {
+      "start": 120.74999999999926,
+      "end": 125.24999999999919,
+      "text": "probes. The smoothness fade start will set the smoothness value at which SSR"
+    },
+    {
+      "start": 125.29999999999919,
+      "end": 129.7999999999991,
+      "text": "reflections begin to fade out. Lower values results in HDRP fading out SSR"
+    },
+    {
+      "start": 129.8499999999991,
+      "end": 131.54999999999907,
+      "text": "reflections for less smooth game"
+    },
+    {
+      "start": 131.59999999999908,
+      "end": 136.449999999999,
+      "text": "objects. We have some other settings here such as the ability to reflect the"
+    },
+    {
+      "start": 136.499999999999,
+      "end": 140.29999999999893,
+      "text": "sky, the screen edge fade distance, as well as the object"
+    },
+    {
+      "start": 140.34999999999894,
+      "end": 143.79999999999887,
+      "text": "thickness. This controls how thick objects are inside of your"
+    },
+    {
+      "start": 143.8499999999989,
+      "end": 148.6999999999988,
+      "text": "scene. So if I set this thickness to one, we'll see more reflections on"
+    },
+    {
+      "start": 148.7499999999988,
+      "end": 152.89999999999873,
+      "text": "our ducks here because the rays are not passing through them as"
+    },
+    {
+      "start": 152.94999999999874,
+      "end": 155.75240240240115,
+      "text": "much. Additionally, we also have some quality settings"
+    },
+    {
+      "start": 155.80240240240116,
+      "end": 160.20660660660536,
+      "text": "here. So I can set this to high quality to get a bit of"
+    },
+    {
+      "start": 160.6499999999986,
+      "end": 165.14999999999853,
+      "text": "a better reflection. And we can also change the algorithm as well, from"
+    },
+    {
+      "start": 165.19999999999854,
+      "end": 169.09999999999854,
+      "text": "approximation to PBR accumulation. Approximation is a quicker algorithm, which"
+    },
+    {
+      "start": 169.14999999999856,
+      "end": 172.95360360360215,
+      "text": "results in less resources used, but it's not as accurate for rough"
+    },
+    {
+      "start": 173.00360360360216,
+      "end": 176.60360360360215,
+      "text": "surfaces. Something like PBR accumulation accumulates multiple frames to"
+    },
+    {
+      "start": 176.65360360360216,
+      "end": 180.75750750750606,
+      "text": "generate a more accurate result. And we can control the amount of accumulation"
+    },
+    {
+      "start": 180.80750750750607,
+      "end": 185.11141141141,
+      "text": "using this accumulation factor. This gives a more accurate result, but it is"
+    },
+    {
+      "start": 185.14999999999822,
+      "end": 187.89999999999816,
+      "text": "resource intensive, and it can lead to some"
+    },
+    {
+      "start": 187.94999999999817,
+      "end": 191.89999999999816,
+      "text": "ghosting. Additionally, this algorithm cannot be used on transparent materials,"
+    },
+    {
+      "start": 191.94999999999817,
+      "end": 196.25390390390208,
+      "text": "as those will always use approximation. In the next module, we'll begin talking"
+    },
+    {
+      "start": 196.3039039039021,
+      "end": 200.207807807806,
+      "text": "about the basics of lighting inside of HDRP by learning about the different"
+    },
+    {
+      "start": 200.54999999999797,
+      "end": 201.79999999999797,
+      "text": "light types."
+    }
+  ]
+}

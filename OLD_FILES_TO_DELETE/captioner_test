@@ -1,0 +1,13 @@
+from pathlib import Path
+import re
+
+# Load transcript and VTT
+txt = Path("outputs/M0-01_Course-Trailer.txt").read_text()
+vtt = Path("outputs/M0-01_Course-Trailer.vtt").read_text()
+
+# Extract plain text from VTT (ignore timestamps)
+vtt_words = re.findall(r'\b[\w\'‑-]+\b', vtt)
+
+txt_words = re.findall(r'\b[\w\'‑-]+\b', txt)
+
+missing = set(txt_words) - set(vtt_words)

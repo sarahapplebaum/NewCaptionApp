@@ -1,0 +1,409 @@
+"""
+Real Transcript Validation Tests - IMPROVED
+Tests OptimizedSubtitleFormatter with actual video transcripts
+Now includes stricter word-by-word validation
+Run with: python test_real_transcripts.py
+"""
+
+import unittest
+from captioner import OptimizedSubtitleFormatter
+from typing import List, Dict, Tuple, Set
+import re
+from difflib import SequenceMatcher
+
+
+class ImprovedTranscriptValidator:
+    """Improved validator with strict word-by-word comparison"""
+    
+    @staticmethod
+    def normalize_word(word: str) -> str:
+        """Normalize word for comparison (remove punctuation, lowercase)"""
+        # Remove all punctuation but keep hyphens in words like "high-end"
+        normalized = word.lower()
+        # Remove trailing/leading punctuation but keep internal hyphens
+        normalized = re.sub(r'^[^\w-]+|[^\w-]+$', '', normalized)
+        return normalized.strip()
+    
+    @staticmethod
+    def extract_normalized_sequence(text_or_segments) -> List[str]:
+        """Extract normalized word sequence from text or segments"""
+        if isinstance(text_or_segments, str):
+            # It's raw text
+            words = text_or_segments.split()
+        else:
+            # It's a list of segments
+            words = []
+            for segment in text_or_segments:
+                text = segment.get("text", "").strip()
+                if text:
+                    words.extend(text.split())
+        
+        # Normalize all words
+        normalized = [ImprovedTranscriptValidator.normalize_word(w) for w in words]
+        # Remove empty strings
+        return [w for w in normalized if w]
+    
+    @staticmethod
+    def find_missing_words_strict(raw_text: str, segments: List[Dict]) -> List[Dict]:
+        """
+        Strict word-by-word comparison
+        Returns list of missing words with context
+        """
+        raw_words = ImprovedTranscriptValidator.extract_normalized_sequence(raw_text)
+        formatted_words = ImprovedTranscriptValidator.extract_normalized_sequence(segments)
+        
+        # Use SequenceMatcher to find differences
+        matcher = SequenceMatcher(None, raw_words, formatted_words)
+        
+        missing = []
+        
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'delete':
+                # These words are in raw but not in formatted
+                for idx in range(i1, i2):
+                    context_start = max(0, idx - 2)
+                    context_end = min(len(raw_words), idx + 3)
+                    context = ' '.join(raw_words[context_start:context_end])
+                    
+                    missing.append({
+                        'word': raw_words[idx],
+                        'position': idx,
+                        'context': context,
+                        'type': 'missing'
+                    })
+            
+            elif tag == 'replace':
+                # Words were replaced (different in raw vs formatted)
+                for idx in range(i1, i2):
+                    context_start = max(0, idx - 2)
+                    context_end = min(len(raw_words), idx + 3)
+                    context = ' '.join(raw_words[context_start:context_end])
+                    
+                    missing.append({
+                        'word': raw_words[idx],
+                        'position': idx,
+                        'context': context,
+                        'type': 'replaced'
+                    })
+        
+        return missing
+    
+    @staticmethod
+    def find_added_words(raw_text: str, segments: List[Dict]) -> List[Dict]:
+        """Find words added that weren't in raw"""
+        raw_words = ImprovedTranscriptValidator.extract_normalized_sequence(raw_text)
+        formatted_words = ImprovedTranscriptValidator.extract_normalized_sequence(segments)
+        
+        matcher = SequenceMatcher(None, raw_words, formatted_words)
+        
+        added = []
+        
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'insert':
+                # These words are in formatted but not in raw
+                for idx in range(j1, j2):
+                    context_start = max(0, idx - 2)
+                    context_end = min(len(formatted_words), idx + 3)
+                    context = ' '.join(formatted_words[context_start:context_end])
+                    
+                    added.append({
+                        'word': formatted_words[idx],
+                        'position': idx,
+                        'context': context
+                    })
+        
+        return added
+    
+    @staticmethod
+    def calculate_word_accuracy(raw_text: str, segments: List[Dict]) -> float:
+        """Calculate percentage of words correctly preserved"""
+        raw_words = ImprovedTranscriptValidator.extract_normalized_sequence(raw_text)
+        formatted_words = ImprovedTranscriptValidator.extract_normalized_sequence(segments)
+        
+        if not raw_words:
+            return 0.0
+        
+        matcher = SequenceMatcher(None, raw_words, formatted_words)
+        return matcher.ratio() * 100
+    
+    @staticmethod
+    def check_overlapping_timecodes(segments: List[Dict]) -> List[Dict]:
+        """Find overlapping segment timecodes"""
+        overlaps = []
+        
+        for i in range(len(segments) - 1):
+            current = segments[i]
+            next_seg = segments[i + 1]
+            
+            current_end = current.get("end", 0)
+            next_start = next_seg.get("start", 0)
+            
+            if current_end > next_start:
+                overlap_amount = current_end - next_start
+                overlaps.append({
+                    'segment1': i,
+                    'segment2': i + 1,
+                    'overlap': overlap_amount,
+                    'text1': current.get("text", "")[:50],
+                    'text2': next_seg.get("text", "")[:50]
+                })
+        
+        return overlaps
+    
+    @staticmethod
+    def check_minimum_duration(segments: List[Dict], min_duration: float = 1.25) -> List[Dict]:
+        """Find segments shorter than minimum duration"""
+        short_segments = []
+        
+        for i, segment in enumerate(segments):
+            start = segment.get("start", 0)
+            end = segment.get("end", 0)
+            duration = end - start
+            
+            if duration < min_duration:
+                short_segments.append({
+                    'segment': i,
+                    'duration': duration,
+                    'text': segment.get("text", "")[:50]
+                })
+        
+        return short_segments
+    
+    @staticmethod
+    def find_inappropriate_periods(raw_text: str, segments: List[Dict]) -> List[Dict]:
+        """Find periods added before conjunctions"""
+        issues = []
+        
+        for i in range(len(segments) - 1):
+            current_text = segments[i].get("text", "").strip()
+            next_text = segments[i + 1].get("text", "").strip()
+            
+            if not current_text or not next_text:
+                continue
+            
+            # Check if current ends with period
+            if current_text.endswith('.'):
+                # Get first word of next segment
+                next_words = next_text.split()
+                if next_words:
+                    first_word = next_words[0].strip('.,!?";:\'"')
+                    
+                    # Check if it's a conjunction that should have period before it
+                    if first_word.lower() in ['and', 'but', 'so', 'or', 'yet']:
+                        # Check if raw text has this pattern
+                        # Extract the last word from current segment
+                        current_words = current_text.split()
+                        if current_words:
+                            last_word_base = current_words[-1].rstrip('.')
+                            
+                            # Search in raw text for this pattern
+                            pattern = f"{last_word_base}[.,!?]?\\s+{first_word}"
+                            if not re.search(pattern, raw_text, re.IGNORECASE):
+                                issues.append({
+                                    'segment': i,
+                                    'issue': f"Period before '{first_word}'",
+                                    'context': f"{current_text[-30:]} | {next_text[:30]}"
+                                })
+        
+        return issues
+
+
+class TestRealTranscriptsImproved(unittest.TestCase):
+    """Improved test suite with strict validation"""
+    
+    def setUp(self):
+        self.formatter = OptimizedSubtitleFormatter
+        self.validator = ImprovedTranscriptValidator()
+    
+    def test_reflections_video_user_provided(self):
+        """Test the actual user-provided reflections video transcript"""
+        
+        raw_transcript = """In this video, we're going to go over screen space reflections, which is a complex topic that deserves a little bit more time for discussion. Screen space reflections allow you to calculate reflections from the scene in real time without needing to use reflection probes, which we cover in the next module. This is a very intense effect, so reflection probes are the more performant option, but screen space reflections are an option if you're targeting very high-end devices. You're going to see this effect mostly on water, metallics, and other reflective materials. Once we've added screen space reflections onto our volume, let's take a look at it in action. Right now in our evening A scene here, the main thing that uses reflections are these air ducts above us. If I were to disable these reflection probes, we can see the color of these air ducts completely change, since after all these ducts are metallic and they reflect the light from the office around it. These reflection probes approximate the amount of light that the metallic air ducts are going to give off. Let's say I want to completely do away with reflection probes and have these use screen space reflections to approximate their reflection. What we can do is we can come over to the material that these air ducts use. So for example, if I select this and I can see that that the in the materials is air ducts B, I can go ahead and select air ducts B, toggle receive SSR, and I can do the same with these materials as well. Enable SSR on all of these air duct materials and now if I go into my volume here and I start messing around with the screen space reflection settings I can start getting these air ducts to reflect light using the scene itself rather than reflection probes. We can change the amount of smoothness. Minimum smoothness determines how smooth an object must be for SSR to be applied. Objects below this minimum use another reflection method such as probes. The smoothness fade start will set the smoothness value at which SSR reflections begin to fade out. Lower values results in HDRP fading out SSR reflections for less smooth game objects. We have some other settings here such as the ability to reflect the sky, the screen edge fade distance, as well as the object thickness. This controls how thick objects are inside of your scene. So if I set this thickness to one, we'll see more reflections on our ducks here because the rays are not passing through them as much. Additionally, we also have some quality settings here. So I can set this to high quality to get a bit of a better reflection. And we can also change the algorithm as well, from approximation to PBR accumulation. Approximation is a quicker algorithm, which results in less resources used, but it's not as accurate for rough surfaces. Something like PBR accumulation accumulates multiple frames to generate a more accurate result. And we can control the amount of accumulation using this accumulation factor. This gives a more accurate result, but it is more resource intensive and it can lead to some ghosting. Additionally, this algorithm cannot be used on transparent materials, as those will always use approximation. In the next video, we'll begin to discuss ray tracing. And for that video, I'm going to switch to a Windows machine. So if you are using a machine that doesn't support DirectX 12, such as a Mac, such as a Mac machine, feel free to watch along, despite the fact that you won't be able to preview the ray tracing effects in real time."""
+        
+        # Simulate word-level timestamps
+        words = []
+        word_list = raw_transcript.split()
+        current_time = 0.0
+        
+        for word in word_list:
+            duration = 0.4
+            words.append({
+                "word": word,
+                "start": current_time,
+                "end": current_time + duration
+            })
+            current_time += duration
+        
+        # Generate segments
+        segments = self.formatter.create_optimized_segments(words, max_chars=84)
+        
+        print("\n" + "="*80)
+        print("REFLECTIONS VIDEO - STRICT VALIDATION")
+        print("="*80)
+        
+        # Calculate accuracy
+        accuracy = self.validator.calculate_word_accuracy(raw_transcript, segments)
+        print(f"\n📊 Word Accuracy: {accuracy:.2f}%")
+        
+        # Find missing words with strict comparison
+        missing = self.validator.find_missing_words_strict(raw_transcript, segments)
+        print(f"\n❌ Missing/Changed Words: {len(missing)}")
+        
+        if missing:
+            print("\n🔍 Details of missing words:")
+            for item in missing[:10]:  # Show first 10
+                print(f"   - Word: '{item['word']}'")
+                print(f"     Position: {item['position']}")
+                print(f"     Context: ...{item['context']}...")
+                print(f"     Type: {item['type']}")
+                print()
+        
+        # Find added words
+        added = self.validator.find_added_words(raw_transcript, segments)
+        print(f"\n➕ Added Words: {len(added)}")
+        
+        if added:
+            print("\n🔍 Details of added words:")
+            for item in added[:10]:
+                print(f"   - Word: '{item['word']}'")
+                print(f"     Context: ...{item['context']}...")
+                print()
+        
+        # Check overlaps
+        overlaps = self.validator.check_overlapping_timecodes(segments)
+        print(f"\n⏱️  Overlapping Segments: {len(overlaps)}")
+        
+        if overlaps:
+            print("\n🔍 Overlap details:")
+            for overlap in overlaps[:5]:
+                print(f"   - Segments {overlap['segment1']} & {overlap['segment2']}")
+                print(f"     Overlap: {overlap['overlap']:.3f}s")
+                print(f"     Text1: {overlap['text1']}...")
+                print(f"     Text2: {overlap['text2']}...")
+                print()
+        
+        # Check short segments
+        short = self.validator.check_minimum_duration(segments)
+        print(f"\n⏳ Short Segments: {len(short)}")
+        
+        # Critical word check
+        critical_words = ['targeting', 'metallic', 'as', 'those']
+        formatted_text = ' '.join([s['text'] for s in segments]).lower()
+        
+        print(f"\n🔍 Critical Words Check:")
+        missing_critical = []
+        for word in critical_words:
+            if word in formatted_text:
+                print(f"   ✅ '{word}' found")
+            else:
+                print(f"   ❌ '{word}' MISSING")
+                missing_critical.append(word)
+        
+        print("\n" + "="*80)
+        
+        # ASSERTIONS
+        self.assertEqual(len(missing), 0,
+                        f"\n❌ FAILED: {len(missing)} words missing/changed!\n"
+                        f"Missing words: {[m['word'] for m in missing[:5]]}")
+        
+        self.assertEqual(len(added), 0,
+                        f"\n❌ FAILED: {len(added)} words added!\n"
+                        f"Added words: {[a['word'] for a in added[:5]]}")
+        
+        self.assertGreaterEqual(accuracy, 99.5,
+                               f"\n❌ FAILED: Accuracy only {accuracy:.2f}% (should be >= 99.5%)")
+        
+        self.assertEqual(len(overlaps), 0,
+                        f"\n❌ FAILED: {len(overlaps)} overlapping segments")
+        
+        self.assertEqual(len(short), 0,
+                        f"\n❌ FAILED: {len(short)} segments below minimum duration")
+        
+        self.assertEqual(len(missing_critical), 0,
+                        f"\n❌ FAILED: Critical words missing: {missing_critical}")
+    
+    def test_word_preservation_simple(self):
+        """Simple test to verify word preservation"""
+        
+        raw = "The quick brown fox jumps over the lazy dog"
+        
+        words = []
+        for i, word in enumerate(raw.split()):
+            words.append({
+                "word": word,
+                "start": i * 0.5,
+                "end": (i + 1) * 0.5
+            })
+        
+        segments = self.formatter.create_optimized_segments(words)
+        
+        missing = self.validator.find_missing_words_strict(raw, segments)
+        accuracy = self.validator.calculate_word_accuracy(raw, segments)
+        
+        print(f"\n✅ Simple test accuracy: {accuracy:.2f}%")
+        
+        self.assertEqual(len(missing), 0, f"Missing words in simple test: {missing}")
+        self.assertEqual(accuracy, 100.0, "Simple test should be 100% accurate")
+    
+    def test_no_word_dropping(self):
+        """Test that no words are dropped during processing"""
+        
+        test_cases = [
+            "targeting very high-end devices",
+            "metallic and they reflect",
+            "as those will always use",
+            "And I'm going to come",
+            "So if you are using"
+        ]
+        
+        for test_text in test_cases:
+            words = []
+            for i, word in enumerate(test_text.split()):
+                words.append({
+                    "word": word,
+                    "start": i * 0.5,
+                    "end": (i + 1) * 0.5
+                })
+            
+            segments = self.formatter.create_optimized_segments(words)
+            missing = self.validator.find_missing_words_strict(test_text, segments)
+            
+            self.assertEqual(len(missing), 0,
+                           f"Words dropped in '{test_text}': {[m['word'] for m in missing]}")
+
+
+def run_tests():
+    """Run all tests with detailed output"""
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromTestCase(TestRealTranscriptsImproved)
+    
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    
+    print("\n" + "="*80)
+    print("TEST SUMMARY")
+    print("="*80)
+    print(f"Tests run: {result.testsRun}")
+    print(f"✅ Passed: {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"❌ Failed: {len(result.failures)}")
+    print(f"💥 Errors: {len(result.errors)}")
+    
+    if result.failures:
+        print("\n⚠️  FAILURES:")
+        for test, traceback in result.failures:
+            print(f"\n{test}:")
+            print(traceback)
+    
+    if result.errors:
+        print("\n💥 ERRORS:")
+        for test, traceback in result.errors:
+            print(f"\n{test}:")
+            print(traceback)
+    
+    print("="*80)
+    
+    return result
+
+
+if __name__ == '__main__':
+    run_tests()

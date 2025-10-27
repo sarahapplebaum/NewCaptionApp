@@ -1,0 +1,260 @@
+﻿1
+00:00:02,580 --> 00:00:07,280
+In this video, we're going to go over
+screen space reflections, which is a
+
+2
+00:00:07,280 --> 00:00:09,500
+topic that deserves a little bit more time
+for
+
+3
+00:00:09,500 --> 00:00:14,039
+discussion. Screen space reflections allow
+you to calculate reflections from the
+
+4
+00:00:14,039 --> 00:00:18,739
+scene in real time without needing to use
+reflection probes, which we cover in the
+
+5
+00:00:18,739 --> 00:00:23,500
+next module. This is a very intense
+effect, so reflection probes are the more
+
+6
+00:00:23,500 --> 00:00:27,980
+performant option, but screen space
+reflections are an option if you're
+
+7
+00:00:27,980 --> 00:00:32,470
+very high-end devices. You're going to see
+this effect mostly on water,
+
+8
+00:00:32,520 --> 00:00:34,159
+metallics, and other reflective
+
+9
+00:00:34,159 --> 00:00:38,850
+materials. Once we've added screen space
+reflections onto our volume,
+
+10
+00:00:38,899 --> 00:00:40,719
+let's take a look at it in
+
+11
+00:00:40,719 --> 00:00:45,439
+action. Right now in our evening A scene
+here, the main thing that uses
+
+12
+00:00:45,439 --> 00:00:48,000
+reflections are these air ducts above
+
+13
+00:00:48,000 --> 00:00:52,880
+us. If I were to disable these reflection
+probes, we can see the
+
+14
+00:00:52,880 --> 00:00:56,740
+color of these air ducts completely
+change, since after all these ducts are
+
+15
+00:00:56,740 --> 00:01:01,240
+metallic, and they reflect the light from
+the office around it.
+
+16
+00:01:03,820 --> 00:01:08,540
+These reflection probes approximate the
+amount of light that the metallic air
+
+17
+00:01:08,540 --> 00:01:12,620
+are going to give off. Let's say I want to
+completely do away with reflection probes
+
+18
+00:01:12,620 --> 00:01:16,599
+and have these use screen space
+reflections to approximate their
+
+19
+00:01:16,599 --> 00:01:20,760
+reflection. What we can do is we can come
+over to the material that these air ducts
+
+20
+00:01:20,760 --> 00:01:25,640
+use. For example, if I select this, and I
+can see that the element in the
+
+21
+00:01:25,640 --> 00:01:29,920
+materials is air ducts B, I can go ahead
+and select air ducts B,
+
+22
+00:01:31,079 --> 00:01:35,719
+toggle receive SSR, and I can do the same
+with these
+
+23
+00:01:35,719 --> 00:01:36,969
+materials as well.
+
+24
+00:01:40,719 --> 00:01:43,900
+Enable SSR on all of these air duct
+materials.
+
+25
+00:01:47,460 --> 00:01:54,219
+And now if I go into my volume here, and I
+start messing
+
+26
+00:01:54,219 --> 00:01:59,079
+around with the screen space reflection
+settings, I can start getting these air
+
+27
+00:01:59,079 --> 00:02:04,400
+ducts to reflect light using the scene
+itself rather
+
+28
+00:02:04,400 --> 00:02:08,280
+than reflection probes. We can change the
+amount of
+
+29
+00:02:08,280 --> 00:02:13,259
+smoothness. Minimum smoothness determines
+how smooth an object must
+
+30
+00:02:13,259 --> 00:02:17,979
+be for SSR to be applied. Objects below
+this minimum use
+
+31
+00:02:17,979 --> 00:02:19,759
+another reflection method such as
+
+32
+00:02:19,759 --> 00:02:24,819
+probes. The smoothness fade start will set
+the smoothness
+
+33
+00:02:24,819 --> 00:02:27,360
+value at which SSR reflections begin to
+fade
+
+34
+00:02:27,360 --> 00:02:32,240
+out. Lower values results in HDRP fading
+out SSR reflections
+
+35
+00:02:32,240 --> 00:02:37,060
+for less smooth game objects. We have some
+other settings here
+
+36
+00:02:37,060 --> 00:02:42,269
+such as the ability to reflect the sky,
+the screen edge fade distance,
+
+37
+00:02:42,319 --> 00:02:47,300
+as well as the object thickness. This
+controls how thick objects are
+
+38
+00:02:47,300 --> 00:02:52,120
+inside of your scene. So if I set this
+thickness to one, we'll
+
+39
+00:02:52,120 --> 00:02:57,460
+see more reflections on our ducts here
+because the rays
+
+40
+00:02:57,460 --> 00:02:59,200
+are not passing through them as much.
+
+41
+00:03:01,699 --> 00:03:05,520
+Additionally, we also have some quality
+settings here, so I can set this to high
+
+42
+00:03:05,520 --> 00:03:07,300
+quality to get a bit of a better
+reflection.
+
+43
+00:03:11,479 --> 00:03:13,780
+And we can also change the algorithm as
+
+44
+00:03:13,780 --> 00:03:17,659
+well. From approximation to PBR
+
+45
+00:03:17,659 --> 00:03:22,620
+accumulation. Approximation is a quicker
+algorithm which results in
+
+46
+00:03:22,620 --> 00:03:25,960
+less resources used, but it's not as
+accurate for rough
+
+47
+00:03:25,960 --> 00:03:30,620
+surfaces. Something like PBR accumulation
+accumulates multiple
+
+48
+00:03:30,620 --> 00:03:32,319
+frames to generate a more accurate
+
+49
+00:03:32,319 --> 00:03:37,680
+result. And we can control the amount of
+accumulation using this accumulation
+
+50
+00:03:41,060 --> 00:03:45,730
+This gives a more accurate result, but it
+is more resource intensive
+
+51
+00:03:45,780 --> 00:03:50,379
+and it can lead to some ghosting. used on
+Additionally, this algorithm cannot be
+
+52
+00:03:50,379 --> 00:03:52,840
+transparent materials as those will always
+use
+
+53
+00:03:52,840 --> 00:03:57,580
+approximation. In the next module, we'll
+begin talking about the basics of lighting
+
+54
+00:03:57,580 --> 00:04:01,599
+inside of HDRP by learning about the
+different light types.
