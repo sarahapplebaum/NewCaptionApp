@@ -7,6 +7,23 @@ import tempfile
 import shutil
 import time
 import gc
+import platform
+if platform.system() == "Windows":
+    import ctypes
+    import site
+
+    for site_path in site.getsitepackages():
+        torch_lib_path = os.path.join(site_path, "torch", "lib")
+        if os.path.exists(torch_lib_path):
+            # Pre-load torch DLLs
+            for dll in ['c10.dll', 'torch_cpu.dll', 'torch_python.dll']:
+                dll_path = os.path.join(torch_lib_path, dll)
+                if os.path.exists(dll_path):
+                    try:
+                        ctypes.CDLL(dll_path)
+                    except Exception:
+                        pass
+            break
 from typing import Optional, List, Dict, Tuple, Union
 from pathlib import Path
 from contextlib import contextmanager
@@ -25,9 +42,12 @@ from faster_whisper import WhisperModel
 import librosa
 from functools import lru_cache
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
 
 # ========================================
 # CONSTANTS & UTILITIES
