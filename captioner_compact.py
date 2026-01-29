@@ -24,6 +24,8 @@ import torch
 from faster_whisper import WhisperModel
 import librosa
 from functools import lru_cache
+from difflib import SequenceMatcher
+import csv
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -112,6 +114,360 @@ def merge_split_compound_words(word_level: List[Dict]) -> List[Dict]:
     
     # Final cleanup pass
     return [{**entry, 'word': entry['word'].replace(' -', '-')} for entry in merged]
+
+# ========================================
+# VOCABULARY CORRECTION
+# ========================================
+
+class VocabularyCorrector:
+    """Unity-specific vocabulary correction system"""
+    
+    def __init__(self, csv_path: str, similarity_threshold: float = 0.85, enable_fallback: bool = True):
+        """
+        Initialize vocabulary corrector
+        
+        Args:
+            csv_path: Path to CSV file with vocabulary terms
+            similarity_threshold: Minimum similarity for fuzzy matching (0.0-1.0)
+            enable_fallback: Enable title case fallback for unknown terms
+        """
+        self.csv_path = csv_path
+        self.similarity_threshold = similarity_threshold
+        self.enable_fallback = enable_fallback
+        
+        # Storage
+        self.terms = []  # Original terms
+        self.term_lookup = {}  # lowercase -> correct case mapping
+        self.multi_word_terms = {}  # lowercase multi-word -> correct case
+        self.fuzzy_cache = {}  # Cache for fuzzy matches
+        self.correction_log = []  # Track corrections made
+        
+        # Load vocabulary
+        self._load_csv()
+        self._build_indices()
+        
+        logger.info(f"📚 Vocabulary loaded: {len(self.terms)} terms ({len(self.multi_word_terms)} multi-word)")
+    
+    def _load_csv(self):
+        """Load terms from CSV file"""
+        try:
+            with open(self.csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    term = row.get('Term', '').strip()
+                    if term and term not in ['Term', '']:  # Skip header duplicates
+                        self.terms.append(term)
+            
+            logger.info(f"✅ Loaded {len(self.terms)} vocabulary terms from {self.csv_path}")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not load vocabulary file: {e}")
+            self.terms = []
+    
+    def _build_indices(self):
+        """Build lookup indices for fast matching"""
+        for term in self.terms:
+            # Single-word and multi-word indexing
+            term_lower = term.lower()
+            self.term_lookup[term_lower] = term
+            
+            # Index multi-word terms (2-3 words)
+            words = term.split()
+            if 2 <= len(words) <= 3:
+                self.multi_word_terms[term_lower] = term
+    
+    def get_initial_prompt(self, max_terms: int = 50) -> str:
+        """
+        Generate initial prompt for Whisper with top Unity terms
+        
+        Args:
+            max_terms: Maximum number of terms to include
+            
+        Returns:
+            Context string for Whisper
+        """
+        if not self.terms:
+            return ""
+        
+        # Prioritize common Unity terms (shorter, more frequently used)
+        priority_terms = sorted(self.terms, key=lambda x: (len(x), x))[:max_terms]
+        
+        prompt = "This video discusses Unity game engine, including: " + ", ".join(priority_terms[:30])
+        return prompt
+    
+    def correct_word(self, word: str) -> Tuple[str, str]:
+        """
+        Correct a single word with punctuation preservation
+        
+        Args:
+            word: Word to correct (may include punctuation)
+            
+        Returns:
+            Tuple of (corrected_word, correction_type)
+            correction_type: 'exact', 'fuzzy', 'fallback', or 'none'
+        """
+        if not word:
+            return word, 'none'
+        
+        # Separate punctuation
+        leading_punct = ''
+        trailing_punct = ''
+        
+        # Extract leading punctuation
+        while word and not word[0].isalnum():
+            leading_punct += word[0]
+            word = word[1:]
+        
+        # Extract trailing punctuation
+        while word and not word[-1].isalnum():
+            trailing_punct = word[-1] + trailing_punct
+            word = word[:-1]
+        
+        if not word:
+            return leading_punct + trailing_punct, 'none'
+        
+        # Try exact match (case-insensitive)
+        word_lower = word.lower()
+        if word_lower in self.term_lookup:
+            corrected = self.term_lookup[word_lower]
+            return leading_punct + corrected + trailing_punct, 'exact'
+        
+        # Try fuzzy match (cached)
+        cache_key = word_lower
+        if cache_key in self.fuzzy_cache:
+            cached_result = self.fuzzy_cache[cache_key]
+            if cached_result:
+                return leading_punct + cached_result + trailing_punct, 'fuzzy'
+        else:
+            # Perform fuzzy matching
+            best_match = None
+            best_score = 0.0
+            
+            for term_lower, correct_term in self.term_lookup.items():
+                # Skip multi-word terms in single-word matching
+                if ' ' in term_lower:
+                    continue
+                
+                # Calculate similarity
+                similarity = SequenceMatcher(None, word_lower, term_lower).ratio()
+                
+                if similarity > best_score and similarity >= self.similarity_threshold:
+                    best_score = similarity
+                    best_match = correct_term
+            
+            # Cache result
+            self.fuzzy_cache[cache_key] = best_match
+            
+            if best_match:
+                return leading_punct + best_match + trailing_punct, 'fuzzy'
+        
+        # Try title case fallback for Unity-like terms
+        if self.enable_fallback and self._looks_like_unity_term(word):
+            corrected = self._apply_title_case(word)
+            return leading_punct + corrected + trailing_punct, 'fallback'
+        
+        # No correction
+        return leading_punct + word + trailing_punct, 'none'
+    
+    def _looks_like_unity_term(self, word: str) -> bool:
+        """Check if word looks like it should be a Unity term"""
+        if len(word) < 3:
+            return False
+        
+        # Check for camelCase or PascalCase patterns
+        has_capitals = any(c.isupper() for c in word)
+        has_lowercase = any(c.islower() for c in word)
+        
+        # Already properly cased
+        if has_capitals and has_lowercase and word[0].isupper():
+            return False
+        
+        # All lowercase single word that could be a class/component name
+        if word.islower() and len(word) >= 5:
+            # Common Unity suffixes/patterns
+            unity_patterns = ['mesh', 'shader', 'texture', 'sprite', 'script', 'object', 
+                            'system', 'manager', 'controller', 'renderer', 'collider']
+            return any(pattern in word for pattern in unity_patterns)
+        
+        return False
+    
+    def _apply_title_case(self, word: str) -> str:
+        """Apply intelligent title case to word"""
+        # Handle special cases
+        if word.lower() in ['vr', 'ar', 'xr', 'ui', 'api', 'fps', 'hdr', 'gpu', 'cpu', 'ai']:
+            return word.upper()
+        
+        # PascalCase for compound-looking words
+        if len(word) > 8 and not any(c.isupper() for c in word):
+            # Try to detect word boundaries heuristically
+            # For now, just capitalize first letter
+            return word[0].upper() + word[1:]
+        
+        return word[0].upper() + word[1:]
+    
+    def correct_word_list(self, words: List[Dict]) -> List[Dict]:
+        """
+        Correct a list of word dictionaries with timestamps
+        
+        Args:
+            words: List of dicts with 'word', 'start', 'end' keys
+            
+        Returns:
+            Corrected word list with same structure
+        """
+        if not words:
+            return words
+        
+        corrected_words = []
+        self.correction_log = []  # Reset log
+        i = 0
+        
+        while i < len(words):
+            # Try multi-word matching first (2-3 words)
+            multi_word_match = self._try_multi_word_match(words, i)
+            
+            if multi_word_match:
+                corrected_entry, words_consumed = multi_word_match
+                corrected_words.append(corrected_entry)
+                i += words_consumed
+                continue
+            
+            # Single word correction
+            word_dict = words[i]
+            original_word = word_dict.get('word', '').strip()
+            
+            if original_word:
+                corrected_word, correction_type = self.correct_word(original_word)
+                
+                # Log correction if changed
+                if corrected_word != original_word and correction_type != 'none':
+                    self.correction_log.append({
+                        'original': original_word,
+                        'corrected': corrected_word,
+                        'type': correction_type,
+                        'position': i
+                    })
+                
+                corrected_words.append({
+                    'word': corrected_word,
+                    'start': safe_float(word_dict.get('start'), 0),
+                    'end': safe_float(word_dict.get('end'), 0)
+                })
+            else:
+                corrected_words.append(word_dict)
+            
+            i += 1
+        
+        return corrected_words
+    
+    def _try_multi_word_match(self, words: List[Dict], index: int) -> Optional[Tuple[Dict, int]]:
+        """
+        Try to match 2-3 consecutive words as a multi-word term
+        
+        Args:
+            words: Full word list
+            index: Current position
+            
+        Returns:
+            Tuple of (merged_word_dict, words_consumed) or None
+        """
+        # Try 3-word match first, then 2-word
+        for word_count in [3, 2]:
+            if index + word_count > len(words):
+                continue
+            
+            # Get consecutive words
+            word_group = words[index:index + word_count]
+            combined_text = ' '.join([w.get('word', '').strip() for w in word_group])
+            combined_lower = combined_text.lower()
+            
+            # Strip punctuation for matching
+            combined_clean = combined_lower.strip('.,!?";:\'"')
+            
+            # Check if it's a known multi-word term
+            if combined_clean in self.multi_word_terms:
+                correct_term = self.multi_word_terms[combined_clean]
+                
+                # Log correction
+                self.correction_log.append({
+                    'original': combined_text,
+                    'corrected': correct_term,
+                    'type': 'multi-word',
+                    'position': index,
+                    'words_consumed': word_count
+                })
+                
+                # Preserve trailing punctuation from last word
+                last_word = word_group[-1].get('word', '')
+                trailing_punct = ''
+                while last_word and not last_word[-1].isalnum():
+                    trailing_punct = last_word[-1] + trailing_punct
+                    last_word = last_word[:-1]
+                
+                # Create merged entry
+                merged_entry = {
+                    'word': correct_term + trailing_punct,
+                    'start': safe_float(word_group[0].get('start'), 0),
+                    'end': safe_float(word_group[-1].get('end'), 0)
+                }
+                
+                return (merged_entry, word_count)
+        
+        return None
+    
+    def get_correction_summary(self) -> str:
+        """Get a summary of corrections made"""
+        if not self.correction_log:
+            return "No corrections made"
+        
+        summary_lines = [f"✏️  Vocabulary Corrections: {len(self.correction_log)} changes"]
+        
+        # Group by type
+        by_type = {}
+        for correction in self.correction_log:
+            corr_type = correction['type']
+            by_type.setdefault(corr_type, []).append(correction)
+        
+        # Show sample corrections by type
+        for corr_type, corrections in by_type.items():
+            count = len(corrections)
+            samples = corrections[:3]  # Show first 3
+            
+            if corr_type == 'exact':
+                summary_lines.append(f"  • {count} exact matches")
+            elif corr_type == 'fuzzy':
+                summary_lines.append(f"  • {count} fuzzy matches")
+                for corr in samples:
+                    summary_lines.append(f"    - '{corr['original']}' → '{corr['corrected']}'")
+            elif corr_type == 'multi-word':
+                summary_lines.append(f"  • {count} multi-word terms")
+                for corr in samples:
+                    summary_lines.append(f"    - '{corr['original']}' → '{corr['corrected']}'")
+            elif corr_type == 'fallback':
+                summary_lines.append(f"  • {count} fallback capitalizations")
+                for corr in samples:
+                    summary_lines.append(f"    - '{corr['original']}' → '{corr['corrected']}'")
+        
+        return '\n'.join(summary_lines)
+    
+    def log_corrections_verbose(self):
+        """Log all corrections to logger"""
+        if not self.correction_log:
+            return
+        
+        logger.info("✏️  Vocabulary Corrections Applied:")
+        for correction in self.correction_log:
+            corr_type = correction['type']
+            original = correction['original']
+            corrected = correction['corrected']
+            
+            if corr_type == 'multi-word':
+                logger.info(f"  🔗 Multi-word: '{original}' → '{corrected}'")
+            elif corr_type == 'fuzzy':
+                logger.info(f"  🔍 Fuzzy match: '{original}' → '{corrected}'")
+            elif corr_type == 'exact':
+                logger.info(f"  ✓ Exact: '{original}' → '{corrected}'")
+            elif corr_type == 'fallback':
+                logger.info(f"  📝 Fallback: '{original}' → '{corrected}'")
 
 # ========================================
 # DATA CLASSES
@@ -1001,12 +1357,14 @@ class SubtitleFormatter:
 class TranscriptionProcessor:
     """Transcription processing with faster-whisper"""
     
-    def __init__(self):
+    def __init__(self, vocabulary_corrector: Optional[VocabularyCorrector] = None):
         self.model_manager = FasterWhisperModelManager()
         self.temp_files = []
+        self.vocabulary_corrector = vocabulary_corrector
     
     def transcribe(self, audio_path: str, model, return_timestamps: bool, 
-                  max_chars: int, file_stats: ProcessingStats) -> Tuple[str, List[Dict]]:
+                  max_chars: int, file_stats: ProcessingStats,
+                  initial_prompt: str = None) -> Tuple[str, List[Dict]]:
         """Transcribe audio with faster-whisper"""
         transcription_start = time.time()
         
@@ -1015,6 +1373,17 @@ class TranscriptionProcessor:
             transcribe_kwargs = {}
             if return_timestamps:
                 transcribe_kwargs['word_timestamps'] = True
+            
+            # Add custom initial prompt if provided
+            if initial_prompt and initial_prompt.strip():
+                transcribe_kwargs['initial_prompt'] = initial_prompt.strip()
+                logger.info(f"📚 Using custom context prompt for transcription")
+            # Add vocabulary guidance if available (fallback)
+            elif self.vocabulary_corrector:
+                vocab_prompt = self.vocabulary_corrector.get_initial_prompt()
+                if vocab_prompt:
+                    transcribe_kwargs['initial_prompt'] = vocab_prompt
+                    logger.info("📚 Using vocabulary guidance for transcription")
             
             logger.info(f"🎙️ Transcribing with faster-whisper...")
             
@@ -1057,6 +1426,17 @@ class TranscriptionProcessor:
                                     'end': current_time + word_duration
                                 })
                                 current_time += word_duration
+                
+                # Apply vocabulary correction if available (before merging compounds)
+                if words and self.vocabulary_corrector:
+                    logger.info("📚 Applying vocabulary corrections...")
+                    words = self.vocabulary_corrector.correct_word_list(words)
+                    
+                    # Log corrections
+                    if self.vocabulary_corrector.correction_log:
+                        self.vocabulary_corrector.log_corrections_verbose()
+                        summary = self.vocabulary_corrector.get_correction_summary()
+                        logger.info(summary)
                 
                 # Merge compound words
                 if words:
@@ -1128,15 +1508,45 @@ class BatchWorker(QObject):
         self.should_stop = True
     
     def transcribe_batch(self, file_paths: List[str], model_id: str, 
-                        return_timestamps: bool = True, max_chars_per_segment: int = 80):
-        """Process batch of files"""
+                        return_timestamps: bool = True, max_chars_per_segment: int = 80,
+                        initial_prompt: str = None, vocab_settings: dict = None):
+        """Process batch of files
+        
+        Args:
+            file_paths: List of file paths to process
+            model_id: Whisper model ID
+            return_timestamps: Whether to generate timestamps
+            max_chars_per_segment: Maximum characters per subtitle segment
+            initial_prompt: Context prompt for Whisper
+            vocab_settings: Dictionary with vocabulary correction settings:
+                - enabled: bool
+                - csv_path: str (path to vocabulary CSV)
+                - sensitivity: float (0.0-1.0)
+                - title_case_fallback: bool
+        """
         results = {}
         successful = 0
         failed = 0
         total_start_time = time.time()
         
+        # Initialize vocabulary corrector if enabled
+        vocabulary_corrector = None
+        if vocab_settings and vocab_settings.get('enabled') and vocab_settings.get('csv_path'):
+            try:
+                vocabulary_corrector = VocabularyCorrector(
+                    csv_path=vocab_settings['csv_path'],
+                    similarity_threshold=vocab_settings.get('sensitivity', 0.85),
+                    enable_fallback=vocab_settings.get('title_case_fallback', True)
+                )
+                self.processor.vocabulary_corrector = vocabulary_corrector
+                logger.info(f"📚 Vocabulary correction enabled with {len(vocabulary_corrector.terms)} terms")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not initialize vocabulary corrector: {e}")
+        
         try:
             logger.info(f"🚀 Starting batch transcription of {len(file_paths)} files")
+            if initial_prompt:
+                logger.info(f"📚 Using context prompt: {initial_prompt[:50]}...")
             
             self.status_updated.emit("Loading AI model...")
             with self.model_manager.model_context(model_id) as model:
@@ -1173,10 +1583,10 @@ class BatchWorker(QObject):
                         
                         self.file_progress_updated.emit(30)
                         
-                        # Transcribe
+                        # Transcribe with context prompt
                         text, segments = self.processor.transcribe(audio_path, model, 
                                                                   return_timestamps, max_chars_per_segment, 
-                                                                  file_stats)
+                                                                  file_stats, initial_prompt)
                         
                         file_stats.characters_transcribed = len(text or "")
                         
@@ -1289,7 +1699,88 @@ class MainWindow(QMainWindow):
         self.timestamps_check.setChecked(True)
         config_layout.addWidget(self.timestamps_check, 2, 0, 1, 2)
         
+        # Context prompt input
+        config_layout.addWidget(QLabel("Context Prompt (optional):"), 3, 0, 1, 2)
+        self.context_prompt_input = QTextEdit()
+        self.context_prompt_input.setPlaceholderText(
+            "e.g., This video is about the Unity game engine, covering GameObjects, Prefabs, and C# scripting..."
+        )
+        self.context_prompt_input.setMaximumHeight(60)
+        self.context_prompt_input.setToolTip(
+            "Provide context to help faster-whisper better recognize domain-specific vocabulary.\n"
+            "Example: 'This video covers Unity game engine topics including Rigidbody, Animator, and NavMesh.'"
+        )
+        config_layout.addWidget(self.context_prompt_input, 4, 0, 1, 2)
+        
+        context_help_label = QLabel("💡 Helps improve accuracy for specialized vocabulary")
+        context_help_label.setStyleSheet("color: gray; font-size: 11px;")
+        config_layout.addWidget(context_help_label, 5, 0, 1, 2)
+        
         layout.addWidget(config_group)
+        
+        # Vocabulary Correction section
+        vocab_group = QGroupBox("Vocabulary Correction (Post-Processing)")
+        vocab_layout = QGridLayout(vocab_group)
+        
+        # Enable checkbox
+        self.vocab_correction_check = QCheckBox("Enable vocabulary correction")
+        self.vocab_correction_check.setToolTip(
+            "Apply post-processing vocabulary correction using a CSV word list.\n"
+            "This corrects transcription errors after the AI generates the initial text."
+        )
+        self.vocab_correction_check.stateChanged.connect(self.on_vocab_correction_toggled)
+        vocab_layout.addWidget(self.vocab_correction_check, 0, 0, 1, 2)
+        
+        # CSV file picker
+        vocab_layout.addWidget(QLabel("Vocabulary CSV:"), 1, 0)
+        self.vocab_file_layout = QHBoxLayout()
+        self.vocab_file_label = QLabel("No file selected")
+        self.vocab_file_label.setStyleSheet("color: gray;")
+        self.vocab_file_button = QPushButton("📂 Select CSV")
+        self.vocab_file_button.clicked.connect(self.select_vocab_file)
+        self.vocab_file_button.setEnabled(False)
+        self.vocab_file_layout.addWidget(self.vocab_file_label, 1)
+        self.vocab_file_layout.addWidget(self.vocab_file_button)
+        vocab_layout.addLayout(self.vocab_file_layout, 1, 1)
+        
+        # Sensitivity slider
+        vocab_layout.addWidget(QLabel("Fuzzy Match Sensitivity:"), 2, 0)
+        sensitivity_layout = QHBoxLayout()
+        self.sensitivity_slider = QSpinBox()
+        self.sensitivity_slider.setRange(70, 100)
+        self.sensitivity_slider.setValue(85)
+        self.sensitivity_slider.setSuffix("%")
+        self.sensitivity_slider.setToolTip(
+            "Minimum similarity for fuzzy matching (70-100%).\n"
+            "Higher = stricter matching (fewer false positives)\n"
+            "Lower = looser matching (catches more variations)"
+        )
+        self.sensitivity_slider.setEnabled(False)
+        sensitivity_layout.addWidget(self.sensitivity_slider)
+        
+        self.sensitivity_label = QLabel("(85% recommended)")
+        self.sensitivity_label.setStyleSheet("color: gray; font-size: 11px;")
+        sensitivity_layout.addWidget(self.sensitivity_label)
+        sensitivity_layout.addStretch()
+        vocab_layout.addLayout(sensitivity_layout, 2, 1)
+        
+        # Title case fallback
+        self.title_case_fallback_check = QCheckBox("Enable title case fallback for unknown terms")
+        self.title_case_fallback_check.setChecked(True)
+        self.title_case_fallback_check.setEnabled(False)
+        self.title_case_fallback_check.setToolTip(
+            "Capitalize words that look like Unity terms but aren't in the vocabulary list."
+        )
+        vocab_layout.addWidget(self.title_case_fallback_check, 3, 0, 1, 2)
+        
+        vocab_help_label = QLabel("💡 Use after context prompting if vocabulary still needs correction")
+        vocab_help_label.setStyleSheet("color: gray; font-size: 11px;")
+        vocab_layout.addWidget(vocab_help_label, 4, 0, 1, 2)
+        
+        # Store vocabulary file path
+        self.vocab_file_path = None
+        
+        layout.addWidget(vocab_group)
         
         # File selection
         file_group = QGroupBox("File Selection")
@@ -1424,6 +1915,38 @@ class MainWindow(QMainWindow):
         for file_path in self.file_paths:
             self.file_list.addItem(os.path.basename(file_path))
     
+    def on_vocab_correction_toggled(self, state):
+        """Handle vocabulary correction checkbox toggle"""
+        enabled = state == Qt.Checked
+        self.vocab_file_button.setEnabled(enabled)
+        self.sensitivity_slider.setEnabled(enabled)
+        self.title_case_fallback_check.setEnabled(enabled)
+        
+        if not enabled:
+            self.vocab_file_path = None
+            self.vocab_file_label.setText("No file selected")
+            self.vocab_file_label.setStyleSheet("color: gray;")
+    
+    def select_vocab_file(self):
+        """Select vocabulary CSV file"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Vocabulary CSV File",
+            "",
+            "CSV Files (*.csv);;All Files (*)"
+        )
+        
+        if file_path:
+            self.vocab_file_path = file_path
+            # Show just the filename, not full path
+            filename = os.path.basename(file_path)
+            self.vocab_file_label.setText(filename)
+            self.vocab_file_label.setStyleSheet("color: green; font-weight: bold;")
+            self.vocab_file_label.setToolTip(file_path)
+            
+            # Log the selection
+            logger.info(f"📚 Vocabulary file selected: {file_path}")
+    
     def check_ready_state(self):
         """Check if ready to process"""
         ready = len(self.file_paths) > 0 and bool(self.output_folder)
@@ -1457,12 +1980,28 @@ class MainWindow(QMainWindow):
         self.worker = BatchWorker()
         self.worker.moveToThread(self.thread)
         
+        # Get context prompt from input
+        context_prompt = self.context_prompt_input.toPlainText().strip()
+        
+        # Build vocabulary settings if enabled
+        vocab_settings = None
+        if self.vocab_correction_check.isChecked() and self.vocab_file_path:
+            vocab_settings = {
+                'enabled': True,
+                'csv_path': self.vocab_file_path,
+                'sensitivity': self.sensitivity_slider.value() / 100.0,  # Convert percentage to decimal
+                'title_case_fallback': self.title_case_fallback_check.isChecked()
+            }
+            logger.info(f"📚 Vocabulary correction enabled: {os.path.basename(self.vocab_file_path)}")
+        
         # Connect signals
         self.thread.started.connect(lambda: self.worker.transcribe_batch(
             self.file_paths,
             self.model_combo.currentText(),
             self.timestamps_check.isChecked(),
-            84  # max chars per segment
+            84,  # max chars per segment
+            context_prompt if context_prompt else None,
+            vocab_settings
         ))
         
         self.worker.progress_updated.connect(self.overall_progress.setValue)
@@ -1624,23 +2163,54 @@ class MainWindow(QMainWindow):
 
 def process_single_video_cli(video_path: str, output_folder: str, model_id: str = "small", 
                            max_chars_per_line: int = 42, max_chars_per_segment: int = 84,
-                           generate_timestamps: bool = True) -> bool:
+                           generate_timestamps: bool = True, context_prompt: str = None,
+                           vocab_csv: str = None, vocab_sensitivity: float = 0.85,
+                           vocab_fallback: bool = True) -> bool:
     """
     Process a single video file from command line
+    
+    Args:
+        video_path: Path to input video/audio file
+        output_folder: Output folder for generated files
+        model_id: Whisper model to use
+        max_chars_per_line: Maximum characters per subtitle line
+        max_chars_per_segment: Maximum characters per subtitle segment
+        generate_timestamps: Whether to generate timestamps
+        context_prompt: Context prompt for Whisper
+        vocab_csv: Path to vocabulary CSV for post-processing correction
+        vocab_sensitivity: Fuzzy match sensitivity (0.0-1.0)
+        vocab_fallback: Enable title case fallback for unknown terms
+        
     Returns True if successful, False otherwise
     """
     try:
         # Ensure output folder exists
         os.makedirs(output_folder, exist_ok=True)
         
+        # Initialize vocabulary corrector if provided
+        vocabulary_corrector = None
+        if vocab_csv and os.path.exists(vocab_csv):
+            try:
+                vocabulary_corrector = VocabularyCorrector(
+                    csv_path=vocab_csv,
+                    similarity_threshold=vocab_sensitivity,
+                    enable_fallback=vocab_fallback
+                )
+                logger.info(f"📚 Vocabulary correction enabled with {len(vocabulary_corrector.terms)} terms")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not load vocabulary file: {e}")
+        
         # Initialize components
         model_manager = FasterWhisperModelManager()
-        processor = TranscriptionProcessor()
+        processor = TranscriptionProcessor(vocabulary_corrector=vocabulary_corrector)
         stats = ProcessingStats()
         stats.start_time = time.time()
         
         filename = os.path.basename(video_path)
         logger.info(f"🎬 Processing: {filename}")
+        
+        if context_prompt:
+            logger.info(f"📚 Using context prompt: {context_prompt[:50]}...")
         
         # Check if file exists
         if not os.path.exists(video_path):
@@ -1662,7 +2232,7 @@ def process_single_video_cli(video_path: str, output_folder: str, model_id: str 
             # Transcribe
             logger.info("🎙️ Transcribing...")
             text, segments = processor.transcribe(
-                audio_path, model, generate_timestamps, max_chars_per_segment, stats
+                audio_path, model, generate_timestamps, max_chars_per_segment, stats, context_prompt
             )
             
             stats.characters_transcribed = len(text or "")
@@ -1738,6 +2308,9 @@ Examples:
   # Process without timestamps (transcript only)
   python captioner_compact.py input.mp4 -o output_folder --no-timestamps
 
+  # Process with context prompt for better vocabulary recognition
+  python captioner_compact.py input.mp4 -o output_folder --prompt "This video covers Unity game engine"
+
   # Launch GUI mode
   python captioner_compact.py --gui
         """
@@ -1755,6 +2328,14 @@ Examples:
                        help='Maximum characters per subtitle segment (default: 84)')
     parser.add_argument('--no-timestamps', action='store_true',
                        help='Generate transcript only without timestamps')
+    parser.add_argument('--prompt', '-p', type=str, default=None,
+                       help='Context prompt to help faster-whisper recognize domain-specific vocabulary')
+    parser.add_argument('--vocab-csv', type=str, default=None,
+                       help='Path to vocabulary CSV file for post-processing correction')
+    parser.add_argument('--vocab-sensitivity', type=int, default=85,
+                       help='Fuzzy match sensitivity percentage (70-100, default: 85)')
+    parser.add_argument('--no-vocab-fallback', action='store_true',
+                       help='Disable title case fallback for unknown terms')
     parser.add_argument('--gui', action='store_true',
                        help='Launch GUI mode (default if no input file provided)')
     parser.add_argument('-v', '--verbose', action='store_true',
@@ -1798,7 +2379,11 @@ Examples:
             model_id=args.model,
             max_chars_per_line=args.max_chars,
             max_chars_per_segment=args.max_segment_chars,
-            generate_timestamps=not args.no_timestamps
+            generate_timestamps=not args.no_timestamps,
+            context_prompt=args.prompt,
+            vocab_csv=args.vocab_csv,
+            vocab_sensitivity=args.vocab_sensitivity / 100.0,  # Convert percentage to decimal
+            vocab_fallback=not args.no_vocab_fallback
         )
         
         # Exit with appropriate code
