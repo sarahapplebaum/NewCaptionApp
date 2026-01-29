@@ -94,11 +94,17 @@ def find_ffmpeg():
     """Find FFmpeg binary for bundling"""
     ffmpeg_name = 'ffmpeg.exe' if IS_WINDOWS else 'ffmpeg'
     
+    # Get spec file directory (SPECPATH is defined by PyInstaller)
+    try:
+        spec_dir = SPECPATH
+    except NameError:
+        spec_dir = os.getcwd()
+    
     # Check for bundled FFmpeg in project directory
     project_paths = [
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), ffmpeg_name),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ffmpeg', ffmpeg_name),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', ffmpeg_name),
+        os.path.join(spec_dir, ffmpeg_name),
+        os.path.join(spec_dir, 'ffmpeg', ffmpeg_name),
+        os.path.join(spec_dir, 'bin', ffmpeg_name),
     ]
     
     for path in project_paths:

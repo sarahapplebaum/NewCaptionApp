@@ -19,7 +19,13 @@ import zipfile
 import tarfile
 import shutil
 import hashlib
+import io
 from pathlib import Path
+
+# Force UTF-8 output on Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 # ========================================
 # CONFIGURATION
@@ -62,7 +68,7 @@ def get_project_root() -> Path:
 
 def download_file(url: str, dest_path: Path, description: str = "file") -> bool:
     """Download a file with progress indication"""
-    print(f"📥 Downloading {description}...")
+    print(f"[DOWNLOAD] Downloading {description}...")
     print(f"   URL: {url}")
     
     try:
@@ -91,37 +97,37 @@ def download_file(url: str, dest_path: Path, description: str = "file") -> bool:
             
             print()  # New line after progress
         
-        print(f"✅ Downloaded to: {dest_path}")
+        print(f"[OK] Downloaded to: {dest_path}")
         return True
         
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f"[ERROR] Download failed: {e}")
         return False
 
 
 def extract_zip(archive_path: Path, extract_to: Path) -> bool:
     """Extract a ZIP archive"""
-    print(f"📦 Extracting ZIP archive...")
+    print("[EXTRACT] Extracting ZIP archive...")
     try:
         with zipfile.ZipFile(archive_path, 'r') as zf:
             zf.extractall(extract_to)
-        print(f"✅ Extracted to: {extract_to}")
+        print(f"[OK] Extracted to: {extract_to}")
         return True
     except Exception as e:
-        print(f"❌ Extraction failed: {e}")
+        print(f"[ERROR] Extraction failed: {e}")
         return False
 
 
 def extract_tar(archive_path: Path, extract_to: Path) -> bool:
     """Extract a TAR archive (including .tar.xz)"""
-    print(f"📦 Extracting TAR archive...")
+    print("[EXTRACT] Extracting TAR archive...")
     try:
         with tarfile.open(archive_path, 'r:*') as tf:
             tf.extractall(extract_to)
-        print(f"✅ Extracted to: {extract_to}")
+        print(f"[OK] Extracted to: {extract_to}")
         return True
     except Exception as e:
-        print(f"❌ Extraction failed: {e}")
+        print(f"[ERROR] Extraction failed: {e}")
         return False
 
 
@@ -139,7 +145,7 @@ def make_executable(file_path: Path):
     """Make file executable on Unix systems"""
     if platform.system() != 'Windows':
         os.chmod(file_path, 0o755)
-        print(f"✅ Made executable: {file_path}")
+        print(f"[OK] Made executable: {file_path}")
 
 
 # ========================================
@@ -159,7 +165,7 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
     current_platform = platform.system()
     
     if current_platform not in FFMPEG_URLS:
-        print(f"❌ Unsupported platform: {current_platform}")
+        print(f"[ERROR] Unsupported platform: {current_platform}")
         return False
     
     config = FFMPEG_URLS[current_platform]
@@ -171,18 +177,18 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
     
     # Check if FFmpeg already exists
     if output_path.exists():
-        print(f"ℹ️  FFmpeg already exists at: {output_path}")
+        print(f"[INFO] FFmpeg already exists at: {output_path}")
         # Verify it works
         try:
             import subprocess
             result = subprocess.run([str(output_path), '-version'], capture_output=True, timeout=10)
             if result.returncode == 0:
-                print("✅ Existing FFmpeg is valid")
+                print("[OK] Existing FFmpeg is valid")
                 return True
             else:
-                print("⚠️ Existing FFmpeg is invalid, re-downloading...")
+                print("[WARN] Existing FFmpeg is invalid, re-downloading...")
         except Exception:
-            print("⚠️ Could not verify existing FFmpeg, re-downloading...")
+            print("[WARN] Could not verify existing FFmpeg, re-downloading...")
     
     # Create temp directory for download
     temp_dir = output_dir / '.ffmpeg_temp'
@@ -210,7 +216,7 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
         if not success:
             # Try fallback URL
             if current_platform in FFMPEG_FALLBACK_URLS:
-                print("⚠️ Trying fallback URL...")
+                print("[WARN] Trying fallback URL...")
                 fallback_url = FFMPEG_FALLBACK_URLS[current_platform]
                 success = download_file(fallback_url, archive_path, f"FFmpeg (fallback)")
         
@@ -234,7 +240,7 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
                 ffmpeg_binary = potential_path
         
         if ffmpeg_binary is None:
-            print(f"❌ Could not find FFmpeg binary in extracted files")
+            print("[ERROR] Could not find FFmpeg binary in extracted files")
             print(f"   Searched in: {extract_dir}")
             # List contents for debugging
             for item in extract_dir.rglob('*'):
@@ -242,7 +248,7 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
             return False
         
         # Copy to output location
-        print(f"📋 Copying FFmpeg to: {output_path}")
+        print(f"[COPY] Copying FFmpeg to: {output_path}")
         shutil.copy2(ffmpeg_binary, output_path)
         
         # Make executable on Unix
@@ -254,18 +260,18 @@ def download_ffmpeg(output_dir: Path = None) -> bool:
             result = subprocess.run([str(output_path), '-version'], capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 version_line = result.stdout.split('\n')[0] if result.stdout else 'Unknown version'
-                print(f"✅ FFmpeg verified: {version_line}")
+                print(f"[OK] FFmpeg verified: {version_line}")
             else:
-                print(f"⚠️ FFmpeg returned non-zero exit code")
+                print("[WARN] FFmpeg returned non-zero exit code")
         except Exception as e:
-            print(f"⚠️ Could not verify FFmpeg: {e}")
+            print(f"[WARN] Could not verify FFmpeg: {e}")
         
         return True
         
     finally:
         # Cleanup temp directory
         if temp_dir.exists():
-            print("🧹 Cleaning up temporary files...")
+            print("[CLEANUP] Cleaning up temporary files...")
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
@@ -297,11 +303,11 @@ def main():
     print()
     print("=" * 60)
     if success:
-        print("✅ FFmpeg download completed successfully!")
+        print("[SUCCESS] FFmpeg download completed successfully!")
         print("   The FFmpeg binary has been placed in the project root.")
         print("   It will be automatically bundled when building with PyInstaller.")
     else:
-        print("❌ FFmpeg download failed!")
+        print("[FAILED] FFmpeg download failed!")
         print("   Please download FFmpeg manually and place it in the project root.")
         print()
         print("   Manual download options:")
