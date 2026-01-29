@@ -612,42 +612,108 @@ class AudioProcessor:
     
     @staticmethod
     def find_ffmpeg():
-        """Find FFmpeg executable"""
+        """Find FFmpeg executable with cross-platform support"""
+        import platform
+        
         if 'ffmpeg_path' in AudioProcessor._ffmpeg_cache:
             cached = AudioProcessor._ffmpeg_cache['ffmpeg_path']
             if cached and os.path.exists(cached):
                 return cached
         
-        # Search paths
-        paths = [
-            Path("/opt/homebrew/bin/ffmpeg"),
-            Path("/usr/local/bin/ffmpeg"),
-            Path("/usr/bin/ffmpeg"),
-        ]
+        paths = []
+        is_windows = platform.system() == 'Windows'
+        ffmpeg_name = 'ffmpeg.exe' if is_windows else 'ffmpeg'
         
-        # Add PyInstaller paths
+        # Priority 1: Bundled FFmpeg (PyInstaller)
         if hasattr(sys, '_MEIPASS'):
-            paths.extend([Path(sys._MEIPASS) / "ffmpeg", Path(sys._MEIPASS) / "ffmpeg.exe"])
+            bundle_path = Path(sys._MEIPASS)
+            paths.extend([
+                bundle_path / ffmpeg_name,
+                bundle_path / 'ffmpeg' / ffmpeg_name,
+                bundle_path / 'bin' / ffmpeg_name,
+            ])
         
-        # Test paths
+        # Priority 2: Application directory (for portable installs)
+        if getattr(sys, 'frozen', False):
+            app_dir = Path(sys.executable).parent
+        else:
+            app_dir = Path(__file__).parent
+        
+        paths.extend([
+            app_dir / ffmpeg_name,
+            app_dir / 'ffmpeg' / ffmpeg_name,
+            app_dir / 'bin' / ffmpeg_name,
+        ])
+        
+        # Priority 3: Platform-specific common locations
+        if is_windows:
+            # Windows common paths
+            paths.extend([
+                Path('C:/ffmpeg/bin/ffmpeg.exe'),
+                Path('C:/Program Files/ffmpeg/bin/ffmpeg.exe'),
+                Path('C:/Program Files (x86)/ffmpeg/bin/ffmpeg.exe'),
+            ])
+            # Windows user paths
+            local_app_data = os.environ.get('LOCALAPPDATA', '')
+            if local_app_data:
+                paths.extend([
+                    Path(local_app_data) / 'Microsoft' / 'WinGet' / 'Links' / 'ffmpeg.exe',
+                    Path(local_app_data) / 'Programs' / 'ffmpeg' / 'bin' / 'ffmpeg.exe',
+                ])
+            # Chocolatey path
+            choco_path = os.environ.get('ChocolateyInstall', 'C:\\ProgramData\\chocolatey')
+            paths.append(Path(choco_path) / 'bin' / 'ffmpeg.exe')
+        else:
+            # macOS and Linux paths
+            paths.extend([
+                Path('/opt/homebrew/bin/ffmpeg'),  # macOS Apple Silicon
+                Path('/usr/local/bin/ffmpeg'),      # macOS Intel / Homebrew
+                Path('/usr/bin/ffmpeg'),            # Linux system
+                Path('/snap/bin/ffmpeg'),           # Linux Snap
+            ])
+        
+        # Test each path
         for path in paths:
             if path.exists():
                 try:
-                    result = subprocess.run([str(path), '-version'], capture_output=True, text=True, timeout=5)
+                    # Use shell=True on Windows to handle .exe properly
+                    result = subprocess.run(
+                        [str(path), '-version'], 
+                        capture_output=True, 
+                        text=True, 
+                        timeout=10,
+                        creationflags=subprocess.CREATE_NO_WINDOW if is_windows else 0
+                    )
                     if result.returncode == 0:
                         AudioProcessor._ffmpeg_cache['ffmpeg_path'] = str(path)
                         logger.info(f"✅ FFmpeg found: {path}")
                         return str(path)
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"FFmpeg test failed for {path}: {e}")
+                    continue
         
-        # Try system PATH
+        # Fallback: Try system PATH
         system_ffmpeg = shutil.which('ffmpeg')
         if system_ffmpeg:
-            AudioProcessor._ffmpeg_cache['ffmpeg_path'] = system_ffmpeg
-            return system_ffmpeg
+            try:
+                result = subprocess.run(
+                    [system_ffmpeg, '-version'], 
+                    capture_output=True, 
+                    text=True, 
+                    timeout=10,
+                    creationflags=subprocess.CREATE_NO_WINDOW if is_windows else 0
+                )
+                if result.returncode == 0:
+                    AudioProcessor._ffmpeg_cache['ffmpeg_path'] = system_ffmpeg
+                    logger.info(f"✅ FFmpeg found in PATH: {system_ffmpeg}")
+                    return system_ffmpeg
+            except Exception as e:
+                logger.debug(f"System FFmpeg test failed: {e}")
         
-        logger.error("❌ FFmpeg not found")
+        logger.error("❌ FFmpeg not found. Please install FFmpeg and add it to PATH.")
+        logger.error("   Windows: choco install ffmpeg  or  winget install ffmpeg")
+        logger.error("   macOS: brew install ffmpeg")
+        logger.error("   Linux: sudo apt install ffmpeg")
         return None
     
     @staticmethod

@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+dist/
 develop-eggs/
 dist/
 downloads/
@@ -30,7 +31,20 @@ MANIFEST
 #   Usually these files are written by a python script from a template
 #   before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
+# Note: We keep .spec files in version control for reproducible builds
+# *.spec
+
+# FFmpeg binaries (downloaded for bundling)
+ffmpeg
+ffmpeg.exe
+ffprobe
+ffprobe.exe
+.ffmpeg_temp/
+
+# Release packages
+release/
+release-cpu/
+release-macos/
 
 # Installer logs
 pip-log.txt
@@ -214,3 +228,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+dist 2.zip
+dist 2.zip
