@@ -17,7 +17,7 @@ IS_WINDOWS = PLATFORM == 'Windows'
 IS_MACOS = PLATFORM == 'Darwin'
 IS_LINUX = PLATFORM == 'Linux'
 
-print(f"🔨 Building for: {PLATFORM}")
+print(f"[BUILD] Building for: {PLATFORM}")
 
 # ========================================
 # COLLECT DEPENDENCIES
@@ -28,28 +28,28 @@ binaries = []
 hiddenimports = []
 
 # Collect faster-whisper dependencies
-print("📦 Collecting faster-whisper...")
+print("[COLLECT] Collecting faster-whisper...")
 faster_whisper_datas, faster_whisper_binaries, faster_whisper_hiddenimports = collect_all('faster_whisper')
 datas += faster_whisper_datas
 binaries += faster_whisper_binaries
 hiddenimports += faster_whisper_hiddenimports
 
 # Collect ctranslate2 dependencies (required by faster-whisper, includes CUDA support)
-print("📦 Collecting ctranslate2 (with CUDA)...")
+print("[COLLECT] Collecting ctranslate2 (with CUDA)...")
 ctranslate2_datas, ctranslate2_binaries, ctranslate2_hiddenimports = collect_all('ctranslate2')
 datas += ctranslate2_datas
 binaries += ctranslate2_binaries
 hiddenimports += ctranslate2_hiddenimports
 
 # Collect torch dependencies (includes CUDA libraries)
-print("📦 Collecting torch...")
+print("[COLLECT] Collecting torch...")
 torch_datas, torch_binaries, torch_hiddenimports = collect_all('torch')
 datas += torch_datas
 binaries += torch_binaries
 hiddenimports += torch_hiddenimports
 
 # Collect librosa dependencies
-print("📦 Collecting librosa...")
+print("[COLLECT] Collecting librosa...")
 librosa_datas, librosa_binaries, librosa_hiddenimports = collect_all('librosa')
 datas += librosa_datas
 binaries += librosa_binaries
@@ -109,7 +109,7 @@ def find_ffmpeg():
     
     for path in project_paths:
         if os.path.exists(path):
-            print(f"✅ FFmpeg found in project: {path}")
+            print(f"[OK] FFmpeg found in project: {path}")
             return path
     
     # Platform-specific paths
@@ -135,16 +135,16 @@ def find_ffmpeg():
     
     for path in paths:
         if os.path.exists(path):
-            print(f"✅ FFmpeg found: {path}")
+            print(f"[OK] FFmpeg found: {path}")
             return path
     
     # Try system PATH
     system_ffmpeg = shutil.which('ffmpeg')
     if system_ffmpeg:
-        print(f"✅ FFmpeg found in PATH: {system_ffmpeg}")
+        print(f"[OK] FFmpeg found in PATH: {system_ffmpeg}")
         return system_ffmpeg
     
-    print("⚠️ FFmpeg not found! App will require FFmpeg on target system.")
+    print("[WARN] FFmpeg not found! App will require FFmpeg on target system.")
     return None
 
 # Find and bundle FFmpeg
@@ -152,7 +152,7 @@ ffmpeg_path = find_ffmpeg()
 if ffmpeg_path:
     # Bundle FFmpeg to the root of the package
     binaries.append((ffmpeg_path, '.'))
-    print(f"📦 Bundling FFmpeg from: {ffmpeg_path}")
+    print(f"[BUNDLE] Bundling FFmpeg from: {ffmpeg_path}")
 
 # ========================================
 # ANALYSIS
@@ -264,4 +264,4 @@ else:
         **exe_options,
     )
 
-print("✅ Build configuration complete!")
+print("[OK] Build configuration complete!")
