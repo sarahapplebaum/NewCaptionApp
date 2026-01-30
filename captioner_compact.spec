@@ -195,7 +195,7 @@ exe_options = {
     'debug': False,
     'bootloader_ignore_signals': False,
     'strip': False,
-    'upx': True,
+    'upx': False,  # Disable UPX - it corrupts PyTorch/CUDA DLLs causing WinError 1114
     'upx_exclude': [],
     'runtime_tmpdir': None,
     'console': False,  # GUI app, no console window
@@ -206,20 +206,32 @@ exe_options = {
     'entitlements_file': None,
 }
 
-# Windows-specific options
+# Windows-specific options - Use one-folder mode for better PyTorch/CUDA compatibility
 if IS_WINDOWS:
     exe_options['icon'] = None  # Add .ico path if available
+    exe_options['console'] = True  # Enable console for debugging on Windows
     # Add Windows manifest for high DPI support
     exe_options['manifest'] = None
     
+    # Create EXE without bundling (one-folder mode)
     exe = EXE(
         pyz,
         a.scripts,
+        [],  # Don't include binaries in EXE for one-folder mode
+        exclude_binaries=True,
+        **exe_options,
+    )
+    
+    # Create the distribution folder with all files
+    coll = COLLECT(
+        exe,
         a.binaries,
         a.zipfiles,
         a.datas,
-        [],
-        **exe_options,
+        strip=False,
+        upx=False,  # Disable UPX for all DLLs
+        upx_exclude=[],
+        name='VideoCaptioner',
     )
 
 # macOS-specific options

@@ -42,6 +42,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      - name: Install Visual C++ Redistributable
+        run: |
+          # Install VC++ 2019/2022 Redistributable (required for PyTorch DLLs)
+          choco install vcredist140 -y
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -86,29 +91,38 @@ jobs:
           # Create distribution folder
           New-Item -ItemType Directory -Force -Path "release"
           
-          # Copy executable
-          if (Test-Path "dist/VideoCaptioner.exe") {
+          # Copy entire folder (one-folder mode) or single executable
+          if (Test-Path "dist/VideoCaptioner") {
+            # One-folder mode - copy entire folder contents
+            Copy-Item -Path "dist/VideoCaptioner/*" -Destination "release/" -Recurse
+            Write-Host "Copied one-folder build"
+          } elseif (Test-Path "dist/VideoCaptioner.exe") {
+            # Single file mode (fallback)
             Copy-Item "dist/VideoCaptioner.exe" "release/"
+            Write-Host "Copied single executable"
           }
           
-          # Copy FFmpeg if bundled
-          if (Test-Path "ffmpeg.exe") {
+          # Copy FFmpeg if not already bundled
+          if ((Test-Path "ffmpeg.exe") -and !(Test-Path "release/ffmpeg.exe")) {
             Copy-Item "ffmpeg.exe" "release/"
           }
           
           # Create README
           @"
-          Video Captioner - Windows Release
-          ==================================
+          Video Captioner - Windows Release (CUDA GPU Version)
+          =====================================================
           
           REQUIREMENTS:
           - Windows 10/11 (64-bit)
+          - Microsoft Visual C++ Redistributable 2019 or later
+            (Download from: https://aka.ms/vs/17/release/vc_redist.x64.exe)
           - NVIDIA GPU with CUDA support (optional, for faster processing)
-          - FFmpeg (bundled or install separately)
+          - FFmpeg (bundled)
           
           INSTALLATION:
           1. Extract all files to a folder
-          2. Run VideoCaptioner.exe
+          2. Keep all files together - do not move VideoCaptioner.exe separately
+          3. Run VideoCaptioner.exe
           
           FIRST RUN:
           - The app will download AI models on first use (~1-2GB)
@@ -117,9 +131,11 @@ jobs:
           GPU ACCELERATION:
           - If you have an NVIDIA GPU, the app will automatically use it
           - Ensure you have the latest NVIDIA drivers installed
+          - For RTX 30xx/40xx cards, driver 520+ is recommended
           
           TROUBLESHOOTING:
           - If Windows SmartScreen blocks the app, click "More info" then "Run anyway"
+          - If you get DLL errors, install Visual C++ Redistributable from the link above
           - If FFmpeg is not found, install it: winget install ffmpeg
           
           For more information, visit: https://github.com/sarahapplebaum/NewCaptionApp
@@ -182,11 +198,19 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path "release-cpu"
           
-          if (Test-Path "dist/VideoCaptioner.exe") {
+          # Copy entire folder (one-folder mode) or single executable
+          if (Test-Path "dist/VideoCaptioner") {
+            # One-folder mode - copy entire folder contents
+            Copy-Item -Path "dist/VideoCaptioner/*" -Destination "release-cpu/" -Recurse
+            Write-Host "Copied one-folder build"
+          } elseif (Test-Path "dist/VideoCaptioner.exe") {
+            # Single file mode (fallback)
             Copy-Item "dist/VideoCaptioner.exe" "release-cpu/"
+            Write-Host "Copied single executable"
           }
           
-          if (Test-Path "ffmpeg.exe") {
+          # Copy FFmpeg if not already bundled
+          if ((Test-Path "ffmpeg.exe") -and !(Test-Path "release-cpu/ffmpeg.exe")) {
             Copy-Item "ffmpeg.exe" "release-cpu/"
           }
           
@@ -199,11 +223,18 @@ jobs:
           
           REQUIREMENTS:
           - Windows 10/11 (64-bit)
-          - FFmpeg (bundled or install separately)
+          - Microsoft Visual C++ Redistributable 2019 or later
+            (Download from: https://aka.ms/vs/17/release/vc_redist.x64.exe)
+          - FFmpeg (bundled)
           
           INSTALLATION:
           1. Extract all files to a folder
-          2. Run VideoCaptioner.exe
+          2. Keep all files together - do not move VideoCaptioner.exe separately
+          3. Run VideoCaptioner.exe
+          
+          TROUBLESHOOTING:
+          - If Windows SmartScreen blocks the app, click "More info" then "Run anyway"
+          - If you get DLL errors, install Visual C++ Redistributable from the link above
           
           For more information, visit: https://github.com/sarahapplebaum/NewCaptionApp
           "@ | Out-File -FilePath "release-cpu/README.txt" -Encoding UTF8
