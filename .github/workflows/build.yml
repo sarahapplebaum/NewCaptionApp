@@ -165,6 +165,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      - name: Install Visual C++ Redistributable
+        run: |
+          # Install VC++ 2019/2022 Redistributable (required for PyTorch DLLs)
+          choco install vcredist140 -y
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -295,13 +300,17 @@ jobs:
           # Copy app bundle or executable
           if [ -d "dist/VideoCaptioner.app" ]; then
             cp -R dist/VideoCaptioner.app release-macos/
+            # Ensure executable permission is set (critical for macOS)
+            chmod +x release-macos/VideoCaptioner.app/Contents/MacOS/VideoCaptioner
           elif [ -f "dist/VideoCaptioner" ]; then
             cp dist/VideoCaptioner release-macos/
+            chmod +x release-macos/VideoCaptioner
           fi
           
           # Copy FFmpeg if available
           if [ -f "ffmpeg" ]; then
             cp ffmpeg release-macos/
+            chmod +x release-macos/ffmpeg
           fi
           
           # Create README
@@ -325,14 +334,23 @@ jobs:
           - The app runs natively on Apple Silicon
           - Uses Metal/MPS for GPU acceleration when available
           
+          TROUBLESHOOTING:
+          If you get "cannot be opened" error, run in Terminal:
+          chmod +x /path/to/VideoCaptioner.app/Contents/MacOS/VideoCaptioner
+          
           For more information, visit: https://github.com/sarahapplebaum/NewCaptionApp
           EOF
+          
+          # Create ZIP on macOS to preserve permissions
+          cd release-macos
+          zip -r ../VideoCaptioner-macOS.zip .
+          cd ..
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: VideoCaptioner-macOS
-          path: release-macos/
+          path: VideoCaptioner-macOS.zip
           retention-days: 30
 
   # ========================================
@@ -372,8 +390,11 @@ jobs:
             zip -r ../VideoCaptioner-Windows-x64-CPU.zip VideoCaptioner-Windows-x64-CPU/
           fi
           
-          # macOS version
-          if [ -d "VideoCaptioner-macOS" ]; then
+          # macOS version - already a ZIP, just copy it
+          if [ -f "VideoCaptioner-macOS/VideoCaptioner-macOS.zip" ]; then
+            cp VideoCaptioner-macOS/VideoCaptioner-macOS.zip ../
+          elif [ -d "VideoCaptioner-macOS" ]; then
+            # Fallback: re-zip if not already a ZIP
             zip -r ../VideoCaptioner-macOS.zip VideoCaptioner-macOS/
           fi
 
