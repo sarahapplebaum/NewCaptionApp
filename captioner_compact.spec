@@ -56,6 +56,52 @@ binaries += librosa_binaries
 hiddenimports += librosa_hiddenimports
 
 # ========================================
+# INTEL MKL/OPENMP FOR CPU PYTORCH (Windows)
+# ========================================
+
+if IS_WINDOWS:
+    from PyInstaller.utils.hooks import collect_dynamic_libs
+    
+    # Collect Intel MKL libraries (required for CPU PyTorch)
+    print("[COLLECT] Collecting Intel MKL libraries...")
+    try:
+        mkl_binaries = collect_dynamic_libs('mkl')
+        binaries += mkl_binaries
+        print(f"[OK] Found {len(mkl_binaries)} MKL libraries")
+    except Exception as e:
+        print(f"[WARN] Could not collect MKL: {e}")
+    
+    # Collect Intel OpenMP (libiomp5md.dll)
+    print("[COLLECT] Collecting Intel OpenMP...")
+    try:
+        # Try collecting from numpy (often bundles MKL/OpenMP)
+        numpy_binaries = collect_dynamic_libs('numpy')
+        binaries += numpy_binaries
+        print(f"[OK] Found {len(numpy_binaries)} NumPy libraries")
+    except Exception as e:
+        print(f"[WARN] Could not collect NumPy binaries: {e}")
+    
+    # Try to find and bundle libiomp5md.dll specifically
+    import glob
+    import site
+    
+    site_packages = site.getsitepackages()
+    for sp in site_packages:
+        # Look for Intel OpenMP in common locations
+        patterns = [
+            os.path.join(sp, 'torch', 'lib', 'libiomp5md.dll'),
+            os.path.join(sp, 'torch', 'lib', 'libomp*.dll'),
+            os.path.join(sp, 'numpy', '.libs', '*.dll'),
+            os.path.join(sp, 'numpy.libs', '*.dll'),
+            os.path.join(sp, 'mkl', '*.dll'),
+        ]
+        for pattern in patterns:
+            for dll_path in glob.glob(pattern):
+                if os.path.exists(dll_path):
+                    print(f"[OK] Found: {dll_path}")
+                    binaries.append((dll_path, '.'))
+
+# ========================================
 # HIDDEN IMPORTS FOR CUDA/GPU SUPPORT
 # ========================================
 
