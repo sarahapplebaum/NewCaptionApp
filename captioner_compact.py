@@ -35,18 +35,9 @@ if hasattr(sys, '_MEIPASS'):
     logger.info(f"PyInstaller temp dir: {sys._MEIPASS}")
 logger.info("="*60)
 
-# Import PyQt5 with error handling
-try:
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                               QHBoxLayout, QLabel, QPushButton, QTextEdit, 
-                               QFileDialog, QProgressBar, QComboBox, QCheckBox,
-                               QSpinBox, QGroupBox, QGridLayout, QListWidget, QMessageBox)
-    from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
-    from PyQt5.QtGui import QFont
-    logger.info("✓ PyQt5 imported successfully")
-except ImportError as e:
-    logger.error(f"✗ Failed to import PyQt5: {e}")
-    sys.exit(1)
+# IMPORTANT: Import PyTorch BEFORE PyQt5 to avoid WinError 1114 on Windows
+# See: https://github.com/pytorch/pytorch/issues/166628
+# PyTorch 2.9.0 has a bug where importing after PyQt5 causes DLL initialization failures
 
 # Import PyTorch with detailed error handling
 try:
@@ -100,6 +91,19 @@ except OSError as e:
             "3. Your antivirus isn't blocking the application")
     except:
         pass
+    sys.exit(1)
+
+# NOW import PyQt5 AFTER PyTorch (this is safe and avoids WinError 1114)
+try:
+    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                               QHBoxLayout, QLabel, QPushButton, QTextEdit, 
+                               QFileDialog, QProgressBar, QComboBox, QCheckBox,
+                               QSpinBox, QGroupBox, QGridLayout, QListWidget, QMessageBox)
+    from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
+    from PyQt5.QtGui import QFont
+    logger.info("✓ PyQt5 imported successfully")
+except ImportError as e:
+    logger.error(f"✗ Failed to import PyQt5: {e}")
     sys.exit(1)
 
 # Import faster-whisper with error handling
