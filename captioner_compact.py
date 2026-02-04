@@ -14,22 +14,124 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 import logging
 
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                           QHBoxLayout, QLabel, QPushButton, QTextEdit, 
-                           QFileDialog, QProgressBar, QComboBox, QCheckBox,
-                           QSpinBox, QGroupBox, QGridLayout, QListWidget, QMessageBox)
-from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
-from PyQt5.QtGui import QFont
-import torch
-from faster_whisper import WhisperModel
-import librosa
-from functools import lru_cache
-from difflib import SequenceMatcher
-import csv
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging EARLY
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(os.path.join(tempfile.gettempdir(), 'videocaptioner_debug.log'), mode='w')
+    ]
+)
 logger = logging.getLogger(__name__)
+
+# Log startup information
+logger.info("="*60)
+logger.info("Video Captioner Starting...")
+logger.info(f"Python version: {sys.version}")
+logger.info(f"Platform: {sys.platform}")
+logger.info(f"Frozen: {getattr(sys, 'frozen', False)}")
+if hasattr(sys, '_MEIPASS'):
+    logger.info(f"PyInstaller temp dir: {sys._MEIPASS}")
+logger.info("="*60)
+
+# Import PyQt5 with error handling
+try:
+    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                               QHBoxLayout, QLabel, QPushButton, QTextEdit, 
+                               QFileDialog, QProgressBar, QComboBox, QCheckBox,
+                               QSpinBox, QGroupBox, QGridLayout, QListWidget, QMessageBox)
+    from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
+    from PyQt5.QtGui import QFont
+    logger.info("✓ PyQt5 imported successfully")
+except ImportError as e:
+    logger.error(f"✗ Failed to import PyQt5: {e}")
+    sys.exit(1)
+
+# Import PyTorch with detailed error handling
+try:
+    logger.info("Importing PyTorch...")
+    import torch
+    logger.info(f"✓ PyTorch {torch.__version__} imported successfully")
+    logger.info(f"  CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        logger.info(f"  CUDA version: {torch.version.cuda}")
+        logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        logger.info("  Running in CPU-only mode")
+except ImportError as e:
+    logger.error(f"✗ Failed to import PyTorch: {e}")
+    logger.error("This usually indicates missing DLL dependencies on Windows.")
+    logger.error("Please ensure Visual C++ Redistributable 2019+ is installed:")
+    logger.error("https://aka.ms/vs/17/release/vc_redist.x64.exe")
+    
+    # Create error dialog if PyQt5 is available
+    try:
+        app = QApplication(sys.argv)
+        QMessageBox.critical(None, "PyTorch Import Error", 
+            f"Failed to load PyTorch library:\n\n{str(e)}\n\n"
+            "This is usually caused by missing Visual C++ Redistributable.\n"
+            "Please install VC++ 2019 or later from:\n"
+            "https://aka.ms/vs/17/release/vc_redist.x64.exe")
+    except:
+        pass
+    sys.exit(1)
+except OSError as e:
+    logger.error(f"✗ OSError loading PyTorch DLLs: {e}")
+    logger.error("DLL initialization failed. Possible causes:")
+    logger.error("  1. Missing Visual C++ Redistributable")
+    logger.error("  2. Corrupted PyTorch installation")
+    logger.error("  3. Incompatible CUDA drivers (if using GPU)")
+    
+    if "WinError 1114" in str(e):
+        logger.error("\nWinError 1114 detected - DLL initialization failure")
+        logger.error("This is often caused by:")
+        logger.error("  - UPX compression (should be disabled in build)")
+        logger.error("  - Missing libiomp5md.dll or other Intel OpenMP libraries")
+        logger.error("  - Incorrect DLL search paths")
+    
+    try:
+        app = QApplication(sys.argv)
+        QMessageBox.critical(None, "DLL Loading Error", 
+            f"Failed to initialize PyTorch DLLs:\n\n{str(e)}\n\n"
+            "Please ensure:\n"
+            "1. Visual C++ Redistributable 2019+ is installed\n"
+            "2. All files were extracted together (don't move .exe alone)\n"
+            "3. Your antivirus isn't blocking the application")
+    except:
+        pass
+    sys.exit(1)
+
+# Import faster-whisper with error handling
+try:
+    logger.info("Importing faster-whisper...")
+    from faster_whisper import WhisperModel
+    logger.info("✓ faster-whisper imported successfully")
+except ImportError as e:
+    logger.error(f"✗ Failed to import faster-whisper: {e}")
+    try:
+        app = QApplication(sys.argv)
+        QMessageBox.critical(None, "Import Error", 
+            f"Failed to load faster-whisper:\n\n{str(e)}")
+    except:
+        pass
+    sys.exit(1)
+
+# Import other dependencies
+try:
+    import librosa
+    from functools import lru_cache
+    from difflib import SequenceMatcher
+    import csv
+    logger.info("✓ All dependencies imported successfully")
+except ImportError as e:
+    logger.error(f"✗ Failed to import dependency: {e}")
+    sys.exit(1)
+
+logger.info("="*60)
+logger.info("All imports completed successfully")
+logger.info(f"Debug log file: {os.path.join(tempfile.gettempdir(), 'videocaptioner_debug.log')}")
+logger.info("="*60)
 
 # ========================================
 # CONSTANTS & UTILITIES

@@ -61,6 +61,10 @@ hiddenimports += librosa_hiddenimports
 
 if IS_WINDOWS:
     from PyInstaller.utils.hooks import collect_dynamic_libs
+    import glob
+    import site
+    
+    print("[COLLECT] Collecting Windows-specific libraries...")
     
     # Collect Intel MKL libraries (required for CPU PyTorch)
     print("[COLLECT] Collecting Intel MKL libraries...")
@@ -81,25 +85,58 @@ if IS_WINDOWS:
     except Exception as e:
         print(f"[WARN] Could not collect NumPy binaries: {e}")
     
-    # Try to find and bundle libiomp5md.dll specifically
-    import glob
-    import site
+    # Critical DLL collection - find and bundle explicitly
+    print("[COLLECT] Searching for critical DLLs...")
+    critical_dlls_found = set()
     
     site_packages = site.getsitepackages()
+    if isinstance(site_packages, str):
+        site_packages = [site_packages]
+    
     for sp in site_packages:
-        # Look for Intel OpenMP in common locations
-        patterns = [
-            os.path.join(sp, 'torch', 'lib', 'libiomp5md.dll'),
-            os.path.join(sp, 'torch', 'lib', 'libomp*.dll'),
-            os.path.join(sp, 'numpy', '.libs', '*.dll'),
-            os.path.join(sp, 'numpy.libs', '*.dll'),
-            os.path.join(sp, 'mkl', '*.dll'),
+        if not os.path.exists(sp):
+            continue
+            
+        # Look for critical DLLs in multiple locations
+        search_paths = [
+            os.path.join(sp, 'torch', 'lib'),
+            os.path.join(sp, 'torch', 'bin'),
+            os.path.join(sp, 'numpy', '.libs'),
+            os.path.join(sp, 'numpy.libs'),
+            os.path.join(sp, 'ctranslate2'),
+            os.path.join(sp, 'Library', 'bin'),  # Conda environments
         ]
-        for pattern in patterns:
-            for dll_path in glob.glob(pattern):
-                if os.path.exists(dll_path):
-                    print(f"[OK] Found: {dll_path}")
-                    binaries.append((dll_path, '.'))
+        
+        for search_path in search_paths:
+            if not os.path.exists(search_path):
+                continue
+                
+            # Find all DLL files
+            for dll_file in glob.glob(os.path.join(search_path, '*.dll')):
+                dll_name = os.path.basename(dll_file)
+                
+                # Skip if already found
+                if dll_name in critical_dlls_found:
+                    continue
+                
+                # Bundle critical DLLs to root directory
+                critical_patterns = [
+                    'c10', 'torch', 'iomp', 'mkl', 'ctranslate2',
+                    'cublas', 'cudart', 'cudnn', 'nvrtc', 'cufft',
+                    'cusparse', 'cusolver', 'curand'
+                ]
+                
+                is_critical = any(pattern in dll_name.lower() for pattern in critical_patterns)
+                
+                if is_critical:
+                    binaries.append((dll_file, '.'))  # Copy to root
+                    critical_dlls_found.add(dll_name)
+                    print(f"[OK] Bundling critical DLL: {dll_name}")
+    
+    print(f"[OK] Found {len(critical_dlls_found)} critical DLLs for Windows")
+    
+    # Ensure Visual C++ Runtime is available
+    print("[INFO] Note: Visual C++ Redistributable 2019+ required on target system")
 
 # ========================================
 # HIDDEN IMPORTS FOR CUDA/GPU SUPPORT
@@ -210,9 +247,9 @@ a = Analysis(
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
-    hookspath=[],
+    hookspath=['hooks'],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['hooks/runtimehook_pytorch.py'],
     excludes=[
         # Exclude unnecessary packages to reduce size
         'matplotlib',
