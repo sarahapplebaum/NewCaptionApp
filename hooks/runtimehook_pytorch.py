@@ -23,23 +23,41 @@ def configure_dll_paths():
     
     logging.info("Configuring Windows DLL paths for PyTorch...")
     
-    # Get the directory where PyInstaller extracted files
-    if not hasattr(sys, '_MEIPASS'):
+    # Determine base path based on PyInstaller mode
+    base_path = None
+    
+    # Check if running in PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        # Get the directory containing the executable
+        exe_dir = os.path.dirname(sys.executable)
+        
+        # Check for one-folder mode (_internal folder)
+        internal_dir = os.path.join(exe_dir, '_internal')
+        if os.path.exists(internal_dir):
+            base_path = internal_dir
+            logging.info(f"One-folder mode detected: {internal_dir}")
+        # Check for one-file mode (sys._MEIPASS)
+        elif hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+            logging.info(f"One-file mode detected: {base_path}")
+        else:
+            logging.warning("Frozen app but no _internal or _MEIPASS found")
+            return
+    else:
         logging.info("Not running in PyInstaller bundle, skipping DLL configuration")
         return
     
-    base_path = sys._MEIPASS
-    logging.info(f"PyInstaller base path: {base_path}")
+    logging.info(f"Base path for DLLs: {base_path}")
     
     # Critical DLL directories that need to be in search path
     dll_directories = [
+        base_path,  # Root _internal directory
         os.path.join(base_path, 'torch', 'lib'),
         os.path.join(base_path, 'torch', 'bin'),
         os.path.join(base_path, 'numpy', '.libs'),
         os.path.join(base_path, 'numpy.libs'),
         os.path.join(base_path, 'ctranslate2'),
         os.path.join(base_path, 'ctranslate2', 'lib'),
-        base_path,  # Root directory should also be in search path
     ]
     
     # Add DLL directories to search path (Python 3.8+)
