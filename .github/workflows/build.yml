@@ -123,16 +123,6 @@ jobs:
           
           For more information: https://github.com/sarahapplebaum/NewCaptionApp
           EOF
-            
-            # Create a disk image (DMG)
-            echo "Creating DMG..."
-            hdiutil create -volname "VideoCaptioner" \
-                          -srcfolder release-macos \
-                          -ov -format UDZO \
-                          VideoCaptioner-macOS.dmg
-            
-            # Move DMG to release folder
-            mv VideoCaptioner-macOS.dmg release-macos/
           fi
 
       - name: Upload macOS artifact
@@ -157,16 +147,13 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create ZIP archives
+      - name: Create ZIP archive
         run: |
           cd artifacts
           
-          # macOS (already has DMG, but also create ZIP)
+          # macOS - create ZIP
           if [ -d "VideoCaptioner-macOS" ]; then
             cd VideoCaptioner-macOS
-            if [ -f "VideoCaptioner-macOS.dmg" ]; then
-              mv VideoCaptioner-macOS.dmg ../
-            fi
             zip -r ../VideoCaptioner-macOS.zip .
             cd ..
           fi
@@ -176,18 +163,16 @@ jobs:
         with:
           files: |
             artifacts/VideoCaptioner-macOS.zip
-            artifacts/VideoCaptioner-macOS.dmg
           draft: false
           prerelease: false
           generate_release_notes: true
           body: |
             ## Video Captioner Release - macOS
             
-            ### Downloads
+            ### Download
             
             **macOS Users:**
-            - `VideoCaptioner-macOS.dmg` - Recommended installer (~400-450MB)
-            - `VideoCaptioner-macOS.zip` - Alternative archive format
+            - `VideoCaptioner-macOS.zip` (~400-450MB)
             
             ### Optimizations
             
@@ -215,10 +200,12 @@ jobs:
             
             ### Installation
             
-            1. Download the DMG file
-            2. Open it and drag the app to Applications
-            3. Right-click the app and select "Open" (first time only)
-            4. Click "Open" in the security dialog
+            1. Download the ZIP file
+            2. Extract it
+            3. Drag VideoCaptioner.app to your Applications folder
+            4. First launch: Right-click the app and select "Open"
+               (This bypasses Gatekeeper for unsigned apps)
+            5. Click "Open" in the security dialog
             
             For detailed information, see the README.txt file included in the package.
             
