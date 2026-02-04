@@ -7,9 +7,9 @@ PyQt5>=5.15.0,<6.0.0
 # Deep Learning Framework
 # Pinned to 2.8.0 to avoid WinError 1114 bug in PyTorch 2.9.0 on Windows
 # See: https://github.com/pytorch/pytorch/issues/166628
-torch==2.0.1
-torchvision==0.15.2
-torchaudio==2.0.2
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
 
 # Speech Recognition
 faster-whisper>=1.0.0
