@@ -101,10 +101,12 @@ The script will:
 - **Note:** Falls back to CPU if no GPU detected
 
 ### macOS (`VideoCaptioner.app`)
-- **Size:** ~700MB
+- **Size:** ~400-450MB (optimized, CUDA libraries excluded)
 - **PyTorch:** 2.8.0 (optimized for both Apple Silicon and Intel)
+- **GPU:** Uses MPS (Metal Performance Shaders) for Apple Silicon acceleration
 - **Format:** App bundle + DMG installer
 - **Includes:** FFmpeg bundled
+- **Note:** CUDA libraries are excluded - macOS uses Metal for GPU acceleration
 
 ---
 

@@ -34,16 +34,39 @@ datas += faster_whisper_datas
 binaries += faster_whisper_binaries
 hiddenimports += faster_whisper_hiddenimports
 
-# Collect ctranslate2 dependencies (required by faster-whisper, includes CUDA support)
-print("[COLLECT] Collecting ctranslate2 (with CUDA)...")
+# Collect ctranslate2 dependencies (required by faster-whisper)
+print("[COLLECT] Collecting ctranslate2...")
 ctranslate2_datas, ctranslate2_binaries, ctranslate2_hiddenimports = collect_all('ctranslate2')
+
+# Filter out CUDA libraries on macOS (not needed - Macs use MPS/Metal for GPU)
+if IS_MACOS:
+    print("[OPTIMIZE] Filtering CUDA libraries for macOS (using MPS for GPU acceleration)...")
+    original_count = len(ctranslate2_binaries)
+    ctranslate2_binaries = [
+        (src, dst) for src, dst in ctranslate2_binaries
+        if not any(cuda_lib in src.lower() for cuda_lib in ['cuda', 'cudnn', 'cublas', 'nvrtc', 'cufft', 'cusparse', 'cusolver', 'curand'])
+    ]
+    print(f"[OK] Reduced ctranslate2 binaries from {original_count} to {len(ctranslate2_binaries)} (removed CUDA)")
+
 datas += ctranslate2_datas
 binaries += ctranslate2_binaries
 hiddenimports += ctranslate2_hiddenimports
 
-# Collect torch dependencies (includes CUDA libraries)
+# Collect torch dependencies
 print("[COLLECT] Collecting torch...")
 torch_datas, torch_binaries, torch_hiddenimports = collect_all('torch')
+
+# Filter out CUDA libraries on macOS (Apple Silicon uses MPS, Intel uses CPU)
+if IS_MACOS:
+    print("[OPTIMIZE] Filtering CUDA libraries from PyTorch for macOS...")
+    original_count = len(torch_binaries)
+    torch_binaries = [
+        (src, dst) for src, dst in torch_binaries
+        if not any(cuda_lib in src.lower() for cuda_lib in ['cuda', 'cudnn', 'cublas', 'nvrtc', 'cufft', 'cusparse', 'cusolver', 'curand', 'nccl'])
+    ]
+    print(f"[OK] Reduced torch binaries from {original_count} to {len(torch_binaries)} (removed CUDA)")
+    print("[INFO] GPU acceleration via MPS (Metal Performance Shaders) is preserved in PyTorch core")
+
 datas += torch_datas
 binaries += torch_binaries
 hiddenimports += torch_hiddenimports
@@ -259,7 +282,12 @@ a = Analysis(
         'pytest',
         'sphinx',
         'docutils',
+        # Exclude CUDA modules on macOS (not needed for MPS/Metal GPU acceleration)
+        'torch.cuda' if IS_MACOS else None,
+        'torch.backends.cudnn' if IS_MACOS else None,
+        'torch.nn.backends.thnn' if IS_MACOS else None,
     ],
+
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=None,
