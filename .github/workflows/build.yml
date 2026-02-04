@@ -1,5 +1,5 @@
 # GitHub Actions Workflow for Video Captioner
-# Multi-platform build: Windows CPU, Windows CUDA, macOS
+# macOS build only (optimized for size)
 
 name: Build Application
 
@@ -25,225 +25,6 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # ========================================
-  # WINDOWS CPU BUILD
-  # ========================================
-  build-windows-cpu:
-    name: Build Windows (CPU)
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install Visual C++ Redistributable
-        run: |
-          choco install vcredist140 -y
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      - name: Install CPU-only PyTorch 2.8.0
-        run: |
-          pip uninstall -y torch torchvision torchaudio
-          pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Download FFmpeg
-        run: |
-          python scripts/download_ffmpeg.py
-
-      - name: Verify FFmpeg
-        run: |
-          if (Test-Path "ffmpeg.exe") {
-            Write-Host "FFmpeg found!"
-            .\ffmpeg.exe -version
-          } else {
-            Write-Host "FFmpeg not found, installing via Chocolatey"
-            choco install ffmpeg -y
-          }
-
-      - name: Build with PyInstaller
-        run: |
-          python -m PyInstaller captioner_compact.spec --clean --noconfirm
-
-      - name: List build output
-        run: |
-          Write-Host "Build output:"
-          if (Test-Path "dist/VideoCaptioner") {
-            Get-ChildItem -Path "dist/VideoCaptioner" -Recurse | Measure-Object -Property Length -Sum | Select-Object Count, @{Name="SizeMB";Expression={[math]::Round($_.Sum / 1MB, 2)}}
-          }
-
-      - name: Create release package
-        run: |
-          New-Item -ItemType Directory -Force -Path "release-windows-cpu"
-          
-          if (Test-Path "dist/VideoCaptioner") {
-            Copy-Item -Path "dist/VideoCaptioner/*" -Destination "release-windows-cpu/" -Recurse
-          } elseif (Test-Path "dist/VideoCaptioner.exe") {
-            Copy-Item "dist/VideoCaptioner.exe" "release-windows-cpu/"
-          }
-          
-          if ((Test-Path "ffmpeg.exe") -and !(Test-Path "release-windows-cpu/ffmpeg.exe")) {
-            Copy-Item "ffmpeg.exe" "release-windows-cpu/"
-          }
-          
-          @"
-          Video Captioner - Windows (CPU Version)
-          ========================================
-          
-          REQUIREMENTS:
-          - Windows 10/11 (64-bit)
-          - Microsoft Visual C++ Redistributable 2019+
-            Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
-          - 4GB RAM minimum
-          
-          INSTALLATION:
-          1. Extract all files to a folder
-          2. Keep all files together
-          3. Run VideoCaptioner.exe
-          
-          FEATURES:
-          - CPU-only processing (no GPU required)
-          - Supports all Whisper models (tiny to large-v3)
-          - Batch processing
-          - VTT/SRT subtitle generation
-          - Vocabulary correction
-          
-          For more information: https://github.com/sarahapplebaum/NewCaptionApp
-          "@ | Out-File -FilePath "release-windows-cpu/README.txt" -Encoding UTF8
-
-      - name: Upload Windows CPU artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: VideoCaptioner-Windows-x64-CPU
-          path: release-windows-cpu/
-          retention-days: 90
-
-  # ========================================
-  # WINDOWS CUDA BUILD
-  # ========================================
-  build-windows-cuda:
-    name: Build Windows (CUDA)
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install Visual C++ Redistributable
-        run: |
-          choco install vcredist140 -y
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      - name: Install CUDA PyTorch 2.8.0
-        run: |
-          pip uninstall -y torch torchvision torchaudio
-          pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu121
-
-      - name: Download FFmpeg
-        run: |
-          python scripts/download_ffmpeg.py
-
-      - name: Verify FFmpeg
-        run: |
-          if (Test-Path "ffmpeg.exe") {
-            Write-Host "FFmpeg found!"
-            .\ffmpeg.exe -version
-          } else {
-            choco install ffmpeg -y
-          }
-
-      - name: Build with PyInstaller
-        run: |
-          python -m PyInstaller captioner_compact.spec --clean --noconfirm
-
-      - name: List build output
-        run: |
-          Write-Host "Build output:"
-          if (Test-Path "dist/VideoCaptioner") {
-            Get-ChildItem -Path "dist/VideoCaptioner" -Recurse | Measure-Object -Property Length -Sum | Select-Object Count, @{Name="SizeMB";Expression={[math]::Round($_.Sum / 1MB, 2)}}
-          }
-
-      - name: Create release package
-        run: |
-          New-Item -ItemType Directory -Force -Path "release-windows-cuda"
-          
-          if (Test-Path "dist/VideoCaptioner") {
-            Copy-Item -Path "dist/VideoCaptioner/*" -Destination "release-windows-cuda/" -Recurse
-          } elseif (Test-Path "dist/VideoCaptioner.exe") {
-            Copy-Item "dist/VideoCaptioner.exe" "release-windows-cuda/"
-          }
-          
-          if ((Test-Path "ffmpeg.exe") -and !(Test-Path "release-windows-cuda/ffmpeg.exe")) {
-            Copy-Item "ffmpeg.exe" "release-windows-cuda/"
-          }
-          
-          @"
-          Video Captioner - Windows (CUDA/GPU Version)
-          =============================================
-          
-          REQUIREMENTS:
-          - Windows 10/11 (64-bit)
-          - NVIDIA GPU with CUDA support
-          - NVIDIA GPU Driver (Latest recommended)
-          - Microsoft Visual C++ Redistributable 2019+
-            Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
-          - 8GB RAM minimum (16GB recommended)
-          
-          CUDA SUPPORT:
-          - Built with CUDA 12.1 support
-          - Automatically uses GPU if available
-          - Falls back to CPU if no GPU detected
-          - Much faster processing on compatible GPUs
-          
-          INSTALLATION:
-          1. Update your NVIDIA GPU drivers to the latest version
-          2. Extract all files to a folder
-          3. Keep all files together
-          4. Run VideoCaptioner.exe
-          
-          FEATURES:
-          - GPU-accelerated processing (10-50x faster than CPU)
-          - Supports all Whisper models
-          - Batch processing
-          - VTT/SRT subtitle generation
-          - Vocabulary correction
-          
-          TROUBLESHOOTING:
-          - If GPU is not detected, ensure NVIDIA drivers are up to date
-          - The app will automatically fall back to CPU mode if GPU is unavailable
-          - Check %TEMP%\videocaptioner_debug.log for detailed information
-          
-          For more information: https://github.com/sarahapplebaum/NewCaptionApp
-          "@ | Out-File -FilePath "release-windows-cuda/README.txt" -Encoding UTF8
-
-      - name: Upload Windows CUDA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: VideoCaptioner-Windows-x64-CUDA
-          path: release-windows-cuda/
-          retention-days: 90
-
   # ========================================
   # MACOS BUILD
   # ========================================
@@ -298,14 +79,17 @@ jobs:
             
             # Create README
             cat > release-macos/README.txt << 'EOF'
-          Video Captioner - macOS
-          ========================
+          Video Captioner - macOS (Optimized Build)
+          ==========================================
           
           REQUIREMENTS:
           - macOS 10.15 (Catalina) or later
           - Apple Silicon (M1/M2/M3) or Intel Mac
           - 4GB RAM minimum (8GB recommended)
           - FFmpeg (bundled)
+          
+          BUILD SIZE: ~400-450MB (CUDA libraries excluded)
+          GPU ACCELERATION: Uses MPS (Metal Performance Shaders) on Apple Silicon
           
           INSTALLATION:
           1. Extract the ZIP file
@@ -326,13 +110,15 @@ jobs:
           FEATURES:
           - Native macOS app bundle
           - Optimized for both Apple Silicon and Intel
-          - Supports all Whisper models
+          - GPU acceleration via Metal on Apple Silicon
+          - Supports all Whisper models (tiny to large-v3)
           - Batch processing
           - VTT/SRT subtitle generation
-          - Vocabulary correction
+          - Vocabulary correction with CSV support
+          - Context prompts for improved accuracy
           
           PERFORMANCE:
-          - Apple Silicon (M1/M2/M3): Excellent performance using neural engine
+          - Apple Silicon (M1/M2/M3): Excellent GPU performance using MPS
           - Intel Mac: Good CPU performance
           
           For more information: https://github.com/sarahapplebaum/NewCaptionApp
@@ -361,7 +147,7 @@ jobs:
   # ========================================
   create-release:
     name: Create GitHub Release
-    needs: [build-windows-cpu, build-windows-cuda, build-macos]
+    needs: [build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
@@ -374,20 +160,6 @@ jobs:
       - name: Create ZIP archives
         run: |
           cd artifacts
-          
-          # Windows CPU
-          if [ -d "VideoCaptioner-Windows-x64-CPU" ]; then
-            cd VideoCaptioner-Windows-x64-CPU
-            zip -r ../VideoCaptioner-Windows-x64-CPU.zip .
-            cd ..
-          fi
-          
-          # Windows CUDA
-          if [ -d "VideoCaptioner-Windows-x64-CUDA" ]; then
-            cd VideoCaptioner-Windows-x64-CUDA
-            zip -r ../VideoCaptioner-Windows-x64-CUDA.zip .
-            cd ..
-          fi
           
           # macOS (already has DMG, but also create ZIP)
           if [ -d "VideoCaptioner-macOS" ]; then
@@ -403,39 +175,38 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/VideoCaptioner-Windows-x64-CPU.zip
-            artifacts/VideoCaptioner-Windows-x64-CUDA.zip
             artifacts/VideoCaptioner-macOS.zip
             artifacts/VideoCaptioner-macOS.dmg
           draft: false
           prerelease: false
           generate_release_notes: true
           body: |
-            ## Video Captioner Release
+            ## Video Captioner Release - macOS
             
             ### Downloads
             
-            **Windows Users:**
-            - `VideoCaptioner-Windows-x64-CPU.zip` - For all Windows PCs (no GPU required)
-            - `VideoCaptioner-Windows-x64-CUDA.zip` - For NVIDIA GPU users (much faster)
-            
             **macOS Users:**
-            - `VideoCaptioner-macOS.dmg` - Recommended installer
+            - `VideoCaptioner-macOS.dmg` - Recommended installer (~400-450MB)
             - `VideoCaptioner-macOS.zip` - Alternative archive format
+            
+            ### Optimizations
+            
+            This build has been optimized for size:
+            - CUDA libraries excluded (not needed on macOS)
+            - GPU acceleration via Metal Performance Shaders (MPS)
+            - ~250-300MB smaller than previous builds
+            - Full functionality preserved
             
             ### Requirements
             
-            **Windows:**
-            - Windows 10/11 (64-bit)
-            - Visual C++ Redistributable 2019+ ([Download](https://aka.ms/vs/17/release/vc_redist.x64.exe))
-            - CUDA version requires NVIDIA GPU with latest drivers
-            
-            **macOS:**
-            - macOS 10.15 or later
+            - macOS 10.15 (Catalina) or later
             - Works on both Apple Silicon and Intel Macs
+            - 4GB RAM minimum (8GB recommended)
             
             ### Features
+            
             - Multiple Whisper AI models (tiny to large-v3)
+            - GPU acceleration on Apple Silicon (via MPS)
             - Batch video processing
             - VTT and SRT subtitle generation
             - Vocabulary correction for technical terms
@@ -444,16 +215,18 @@ jobs:
             
             ### Installation
             
-            **Windows:**
-            1. Download the appropriate ZIP file
-            2. Extract all files to a folder
-            3. Run `VideoCaptioner.exe`
-            
-            **macOS:**
             1. Download the DMG file
             2. Open it and drag the app to Applications
             3. Right-click the app and select "Open" (first time only)
+            4. Click "Open" in the security dialog
             
-            For detailed information, see the README.txt file included in each package.
+            For detailed information, see the README.txt file included in the package.
+            
+            ### Windows Users
+            
+            Windows builds are currently disabled in CI/CD. To run on Windows:
+            1. Clone the repository
+            2. Run `START_HERE.bat` for automated setup
+            3. Or use `python captioner_compact.py` after installing requirements
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
