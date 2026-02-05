@@ -138,7 +138,7 @@ echo.
 
 REM Upgrade pip
 echo [2/5] Upgrading pip...
-python -m pip install --upgrade pip >> "%LOG_FILE%" 2>&1
+python -m pip install --upgrade pip
 if %errorlevel% == 0 (
     echo [OK] pip upgraded
 ) else (
@@ -149,7 +149,6 @@ echo.
 REM Install dependencies
 echo [3/5] Installing dependencies...
 echo This may take 5-10 minutes on first run...
-echo Progress is being logged to: %LOG_FILE%
 echo.
 
 if not exist "requirements.txt" (
@@ -166,22 +165,26 @@ goto install_deps
 
 :update_deps
 echo Dependencies already installed, checking for updates...
-pip install -r requirements.txt --upgrade >> "%LOG_FILE%" 2>&1
+echo.
+pip install -r requirements.txt --upgrade
 goto check_install
 
 :install_deps
 echo Installing all dependencies (please wait)...
-pip install -r requirements.txt >> "%LOG_FILE%" 2>&1
+echo.
+pip install -r requirements.txt
 goto check_install
 
 :check_install
 if %errorlevel% neq 0 (
+    echo.
     echo [ERROR] Failed to install dependencies
-    echo Check log file: %LOG_FILE%
+    echo Please check the error messages above.
     echo.
     pause
     exit /b 1
 )
+echo.
 echo [OK] Dependencies installed
 echo.
 
@@ -196,7 +199,7 @@ if %errorlevel% == 0 (
     ) else (
         if exist "scripts\download_ffmpeg.py" (
             echo Downloading FFmpeg...
-            python scripts\download_ffmpeg.py >> "%LOG_FILE%" 2>&1
+            python scripts\download_ffmpeg.py
             if not !errorlevel! == 0 (
                 echo [WARNING] FFmpeg download failed
                 echo You may need to install it manually: winget install ffmpeg
