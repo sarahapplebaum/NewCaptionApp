@@ -21,14 +21,11 @@ torchaudio==2.8.0
 faster-whisper>=1.0.0
 
 # Audio Processing
-librosa>=0.10.0
+# Librosa removed - using FFmpeg directly for better performance
 
 # Additional dependencies that will be installed automatically:
-# - numpy (required by librosa, torch)
-# - scipy (required by librosa)
-# - soundfile (required by librosa)
-# - audioread (required by librosa)
-# - numba (required by librosa)
+# - numpy (required by torch)
+# - ctranslate2 (required by faster-whisper)
 # - ctranslate2 (required by faster-whisper)
 # - tokenizers (required by faster-whisper)
 # - onnxruntime (may be required by faster-whisper)

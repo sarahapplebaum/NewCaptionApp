@@ -137,15 +137,15 @@ The vocabulary corrector applies several types of corrections:
 ## Files in this Workspace
 
 - `captioner_compact.py` - Main application with CLI and GUI support
+- `src/` - Modular source code (core, gui, utils)
 - `batch_process_videos.sh` - Batch processing script for multiple videos
 - `CLI_USAGE.md` - Detailed command-line usage documentation
 - `venv/` - Python virtual environment (not tracked in git)
-- `OLD_FILES_TO_DELETE/` - Archived test files and old implementations
 
 ## Requirements
 
 - FFmpeg must be installed and accessible in your system PATH
-- Python packages: faster-whisper, PyQt5, torch, librosa
+- Python packages: faster-whisper, PyQt5, torch
 
 ## Performance
 
