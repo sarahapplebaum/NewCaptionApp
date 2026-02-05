@@ -14,16 +14,31 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 import logging
 
-# Configure logging EARLY
+# Configure logging EARLY with UTF-8 encoding for Unicode support
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(os.path.join(tempfile.gettempdir(), 'videocaptioner_debug.log'), mode='w')
+        logging.FileHandler(
+            os.path.join(tempfile.gettempdir(), 'videocaptioner_debug.log'), 
+            mode='w',
+            encoding='utf-8'
+        )
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Force UTF-8 encoding for console output on Windows
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        # Python < 3.7 or reconfigure not available
+        import codecs
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 # Log startup information
 logger.info("="*60)
