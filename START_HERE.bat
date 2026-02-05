@@ -24,46 +24,63 @@ echo [CHECK] System diagnostics...
 echo ============================================================
 echo.
 
-REM Check Python
+REM Check for Python 3.12 or 3.11 in common locations first
+set "PYTHON_CMD="
+set "PY_VER="
+
+REM Try Python 3.12 in standard location
+if exist "%LOCALAPPDATA%\Programs\Python\Python312\python.exe" (
+    for /f "tokens=2" %%v in ('"%LOCALAPPDATA%\Programs\Python\Python312\python.exe" --version 2^>^&1') do set PY_VER=%%v
+    set "PYTHON_CMD=%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
+    echo [OK] Python 3.12 found: !PY_VER!
+    goto version_ok
+)
+
+REM Try Python 3.11 in standard location
+if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" (
+    for /f "tokens=2" %%v in ('"%LOCALAPPDATA%\Programs\Python\Python311\python.exe" --version 2^>^&1') do set PY_VER=%%v
+    set "PYTHON_CMD=%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
+    echo [OK] Python 3.11 found: !PY_VER!
+    goto version_ok
+)
+
+REM Try python command in PATH
 python --version >nul 2>&1
 if %errorlevel% == 0 (
     for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PY_VER=%%v
-    echo [OK] Python found: !PY_VER!
-    set "PYTHON_CMD=python"
-) else (
-    python3 --version >nul 2>&1
+    
+    REM Check if it's 3.11 or 3.12
+    echo !PY_VER! | findstr /r "^3\.11\." >nul
     if !errorlevel! == 0 (
-        for /f "tokens=2" %%v in ('python3 --version 2^>^&1') do set PY_VER=%%v
+        set "PYTHON_CMD=python"
         echo [OK] Python found: !PY_VER!
-        set "PYTHON_CMD=python3"
-    ) else (
-        echo [ERROR] Python 3.11+ not found!
-        echo.
-        echo Please install Python 3.11 or newer from:
-        echo https://www.python.org/downloads/
-        echo.
-        echo Make sure to check "Add Python to PATH" during installation.
-        echo.
-        pause
-        exit /b 1
+        goto version_ok
     )
+    echo !PY_VER! | findstr /r "^3\.12\." >nul
+    if !errorlevel! == 0 (
+        set "PYTHON_CMD=python"
+        echo [OK] Python found: !PY_VER!
+        goto version_ok
+    )
+    
+    echo [WARNING] Python !PY_VER! found in PATH, but need 3.11 or 3.12
 )
 
-REM Check if Python version is 3.11 or 3.12 (required for PyTorch 2.8.0)
-echo !PY_VER! | findstr /r "^3\.11\." >nul
-if !errorlevel! == 0 goto version_ok
-echo !PY_VER! | findstr /r "^3\.12\." >nul
-if !errorlevel! == 0 goto version_ok
-
-echo [ERROR] Python !PY_VER! found, but this app requires Python 3.11 or 3.12
+REM Python 3.11/3.12 not found
+echo [ERROR] Python 3.11 or 3.12 not found!
+echo.
+echo Checked:
+echo  - %LOCALAPPDATA%\Programs\Python\Python312
+echo  - %LOCALAPPDATA%\Programs\Python\Python311
+echo  - python command in PATH
 echo.
 echo Python 3.13+ is TOO NEW - PyTorch 2.8.0 wheels are not available for it.
 echo Python 3.10 or older is TOO OLD.
 echo.
-echo Please install Python 3.11 or 3.12 from:
+echo Please install Python 3.12 from:
 echo https://www.python.org/downloads/
 echo.
-echo Recommended: Python 3.12.x (latest 3.12 version)
+echo IMPORTANT: During installation, check "Add Python to PATH"
 echo.
 pause
 exit /b 1
