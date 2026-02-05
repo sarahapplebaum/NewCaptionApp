@@ -71,12 +71,7 @@ datas += torch_datas
 binaries += torch_binaries
 hiddenimports += torch_hiddenimports
 
-# Collect librosa dependencies
-print("[COLLECT] Collecting librosa...")
-librosa_datas, librosa_binaries, librosa_hiddenimports = collect_all('librosa')
-datas += librosa_datas
-binaries += librosa_binaries
-hiddenimports += librosa_hiddenimports
+# Librosa collection removed (dependency removed)
 
 # ========================================
 # INTEL MKL/OPENMP FOR CPU PYTORCH (Windows)
