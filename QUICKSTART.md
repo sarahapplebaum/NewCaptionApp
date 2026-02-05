@@ -4,8 +4,11 @@
 
 ### Prerequisites
 - ✅ Windows 10 or 11
+- ✅ **Python 3.11 or 3.12** (required - Python 3.13+ is too new, 3.10 or older is too old)
 - ✅ Visual C++ Redistributable installed ([Download here](https://aka.ms/vs/17/release/vc_redist.x64.exe))
 - ✅ Internet connection
+
+> **⚠️ Important:** This app requires **Python 3.11 or 3.12** specifically. Python 3.13+ is too new (PyTorch 2.8.0 not available), and Python 3.10 or older is too old. The recommended version is **Python 3.12.x**.
 
 ### Step 1: Download the Project
 
@@ -70,13 +73,21 @@
 
 ## 🔧 Troubleshooting
 
-### "Python not found" Error
-**Solution 1:** Run `START_HERE.bat` - it installs Python automatically
+### "Python not found" or "Wrong Python version" Error
+**Important:** This app requires **Python 3.11 or 3.12** specifically.
+
+**Solution 1:** Run `START_HERE.bat` - it checks Python version and provides clear guidance
 
 **Solution 2:** Install manually:
-1. Download Python 3.11 from https://www.python.org/downloads/
+1. Download **Python 3.12.x** (recommended) from https://www.python.org/downloads/
+   - ❌ Don't use Python 3.13 or newer (too new for PyTorch 2.8.0)
+   - ❌ Don't use Python 3.10 or older (too old)
 2. During installation, check ☑️ "Add Python to PATH"
 3. Run `START_HERE.bat` again
+
+**Check your Python version:**
+Open Command Prompt and type: `python --version`
+You should see `Python 3.11.x` or `Python 3.12.x`
 
 ### "DLL Load Failed" Error
 **Install Visual C++ Redistributable:**

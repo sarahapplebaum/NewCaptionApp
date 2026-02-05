@@ -2,247 +2,230 @@
 REM ============================================================
 REM Video Captioner - Automated Setup and Launch Script
 REM ============================================================
-REM This script will:
-REM   1. Install Python 3.11 if not found
-REM   2. Create a virtual environment
-REM   3. Install all dependencies
-REM   4. Download FFmpeg
-REM   5. Launch the Video Captioner application
-REM
-REM Just double-click this file to get started!
-REM ============================================================
 
 setlocal EnableDelayedExpansion
 
+REM Setup logging
+set "LOG_FILE=%~dp0setup_log.txt"
+echo Setup started at %date% %time% > "%LOG_FILE%"
+echo Setup started at %date% %time%
 echo.
+
+cd /d "%~dp0"
+
 echo ============================================================
 echo           Video Captioner - Automated Setup
 echo ============================================================
 echo.
+echo Working directory: %CD%
+echo.
+echo ============================================================
+echo [CHECK] System diagnostics...
+echo ============================================================
+echo.
 
-REM Change to script directory
-cd /d "%~dp0"
-
-REM ============================================================
-REM STEP 1: Check for Python 3.11
-REM ============================================================
-
-echo [1/5] Checking for Python 3.11...
-
-REM Try to find Python in PATH
+REM Check Python
 python --version >nul 2>&1
 if %errorlevel% == 0 (
-    for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PYTHON_VER=%%v
-    echo Found Python !PYTHON_VER!
-    
-    REM Check if it's Python 3.11.x
-    echo !PYTHON_VER! | findstr /r "3\.11\." >nul
-    if !errorlevel! == 0 (
-        set PYTHON_CMD=python
-        goto :python_found
-    ) else (
-        echo Warning: Found Python !PYTHON_VER!, but need Python 3.11.x
-    )
-)
-
-REM Try python3 command
-python3 --version >nul 2>&1
-if %errorlevel% == 0 (
-    for /f "tokens=2" %%v in ('python3 --version 2^>^&1') do set PYTHON_VER=%%v
-    echo Found Python !PYTHON_VER!
-    
-    echo !PYTHON_VER! | findstr /r "3\.11\." >nul
-    if !errorlevel! == 0 (
-        set PYTHON_CMD=python3
-        goto :python_found
-    )
-)
-
-REM Try common installation paths
-for %%p in (
-    "%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
-    "C:\Python311\python.exe"
-    "%ProgramFiles%\Python311\python.exe"
-    "%ProgramFiles(x86)%\Python311\python.exe"
-) do (
-    if exist %%p (
-        echo Found Python at %%p
-        set PYTHON_CMD=%%p
-        goto :python_found
-    )
-)
-
-REM Python not found - install it
-echo Python 3.11 not found. Installing automatically...
-echo.
-echo This will use Windows Package Manager (winget) to install Python.
-echo Please wait, this may take a few minutes...
-echo.
-
-REM Check if winget is available
-winget --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Windows Package Manager (winget) not found.
-    echo.
-    echo Please install Python 3.11 manually:
-    echo   1. Visit: https://www.python.org/downloads/
-    echo   2. Download Python 3.11.x
-    echo   3. Run the installer
-    echo   4. Make sure to check "Add Python to PATH"
-    echo   5. Run this script again
-    echo.
-    pause
-    exit /b 1
-)
-
-REM Install Python using winget
-echo Installing Python 3.11...
-winget install Python.Python.3.11 --silent --accept-package-agreements --accept-source-agreements
-
-if %errorlevel% neq 0 (
-    echo ERROR: Failed to install Python automatically.
-    echo Please install Python 3.11 manually from https://www.python.org/downloads/
-    echo.
-    pause
-    exit /b 1
-)
-
-echo Python installed successfully!
-echo Please close this window and run START_HERE.bat again.
-echo.
-pause
-exit /b 0
-
-:python_found
-echo [OK] Python found: %PYTHON_CMD%
-echo.
-
-REM ============================================================
-REM STEP 2: Check/Create Virtual Environment
-REM ============================================================
-
-echo [2/5] Setting up virtual environment...
-
-if exist "venv\" (
-    echo Virtual environment already exists.
+    for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PY_VER=%%v
+    echo [OK] Python found: !PY_VER!
+    set "PYTHON_CMD=python"
 ) else (
-    echo Creating virtual environment...
-    %PYTHON_CMD% -m venv venv
-    if !errorlevel! neq 0 (
-        echo ERROR: Failed to create virtual environment.
+    python3 --version >nul 2>&1
+    if !errorlevel! == 0 (
+        for /f "tokens=2" %%v in ('python3 --version 2^>^&1') do set PY_VER=%%v
+        echo [OK] Python found: !PY_VER!
+        set "PYTHON_CMD=python3"
+    ) else (
+        echo [ERROR] Python 3.11+ not found!
+        echo.
+        echo Please install Python 3.11 or newer from:
+        echo https://www.python.org/downloads/
+        echo.
+        echo Make sure to check "Add Python to PATH" during installation.
         echo.
         pause
         exit /b 1
     )
-    echo [OK] Virtual environment created.
 )
+
+REM Check if Python version is 3.11 or 3.12 (required for PyTorch 2.8.0)
+echo !PY_VER! | findstr /r "^3\.11\." >nul
+if !errorlevel! == 0 goto version_ok
+echo !PY_VER! | findstr /r "^3\.12\." >nul
+if !errorlevel! == 0 goto version_ok
+
+echo [ERROR] Python !PY_VER! found, but this app requires Python 3.11 or 3.12
+echo.
+echo Python 3.13+ is TOO NEW - PyTorch 2.8.0 wheels are not available for it.
+echo Python 3.10 or older is TOO OLD.
+echo.
+echo Please install Python 3.11 or 3.12 from:
+echo https://www.python.org/downloads/
+echo.
+echo Recommended: Python 3.12.x (latest 3.12 version)
+echo.
+pause
+exit /b 1
+
+:version_ok
 echo.
 
-REM Activate virtual environment
-call venv\Scripts\activate.bat
-
-REM ============================================================
-REM STEP 3: Install/Upgrade pip
-REM ============================================================
-
-echo [3/5] Upgrading pip...
-python -m pip install --upgrade pip --quiet
-echo [OK] pip upgraded.
-echo.
-
-REM ============================================================
-REM STEP 4: Install Dependencies
-REM ============================================================
-
-echo [4/5] Installing dependencies...
-echo This may take 5-10 minutes on first run (downloading PyTorch)...
-echo Please be patient...
-echo.
-
-REM Check if requirements are already installed
-pip show torch >nul 2>&1
-if %errorlevel% == 0 (
-    echo Dependencies already installed. Checking for updates...
-    pip install -r requirements.txt --upgrade --quiet
+REM Check for venv
+echo [CHECK] Virtual environment...
+if exist "venv\" (
+    echo [OK] Virtual environment exists
 ) else (
-    echo Installing all dependencies (this will take a while)...
-    pip install -r requirements.txt
+    echo [INFO] Creating virtual environment...
+    %PYTHON_CMD% -m venv venv
+    if !errorlevel! neq 0 (
+        echo [ERROR] Failed to create virtual environment
+        echo.
+        pause
+        exit /b 1
+    )
+    echo [OK] Virtual environment created
 )
+echo.
 
+REM Check FFmpeg
+echo [CHECK] FFmpeg...
+ffmpeg -version >nul 2>&1
+if %errorlevel% == 0 (
+    echo [OK] FFmpeg found
+) else (
+    if exist "ffmpeg.exe" (
+        echo [OK] Local ffmpeg.exe found
+    ) else (
+        echo [INFO] FFmpeg not found - will download later
+    )
+)
+echo.
+
+echo ============================================================
+echo           Starting setup process...
+echo ============================================================
+echo.
+
+REM Activate venv
+echo [1/5] Activating virtual environment...
+call venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
-    echo ERROR: Failed to install dependencies.
+    echo [ERROR] Failed to activate virtual environment
     echo.
-    echo Try running this manually:
-    echo   1. Open Command Prompt
-    echo   2. Navigate to this folder
-    echo   3. Run: venv\Scripts\activate
-    echo   4. Run: pip install -r requirements.txt
+    pause
+    exit /b 1
+)
+echo [OK] Virtual environment activated
+echo.
+
+REM Upgrade pip
+echo [2/5] Upgrading pip...
+python -m pip install --upgrade pip >> "%LOG_FILE%" 2>&1
+if %errorlevel% == 0 (
+    echo [OK] pip upgraded
+) else (
+    echo [WARNING] pip upgrade failed, continuing...
+)
+echo.
+
+REM Install dependencies
+echo [3/5] Installing dependencies...
+echo This may take 5-10 minutes on first run...
+echo Progress is being logged to: %LOG_FILE%
+echo.
+
+if not exist "requirements.txt" (
+    echo [ERROR] requirements.txt not found!
+    echo Make sure you have all files from GitHub.
     echo.
     pause
     exit /b 1
 )
 
-echo [OK] All dependencies installed.
+pip show torch >nul 2>&1
+if %errorlevel% == 0 goto update_deps
+goto install_deps
+
+:update_deps
+echo Dependencies already installed, checking for updates...
+pip install -r requirements.txt --upgrade >> "%LOG_FILE%" 2>&1
+goto check_install
+
+:install_deps
+echo Installing all dependencies (please wait)...
+pip install -r requirements.txt >> "%LOG_FILE%" 2>&1
+goto check_install
+
+:check_install
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to install dependencies
+    echo Check log file: %LOG_FILE%
+    echo.
+    pause
+    exit /b 1
+)
+echo [OK] Dependencies installed
 echo.
 
-REM ============================================================
-REM STEP 5: Download FFmpeg
-REM ============================================================
-
-echo [5/5] Checking for FFmpeg...
-
-if exist "ffmpeg.exe" (
-    echo FFmpeg already exists.
+REM Download FFmpeg if needed
+echo [4/5] Checking FFmpeg...
+ffmpeg -version >nul 2>&1
+if %errorlevel% == 0 (
+    echo [OK] FFmpeg available
 ) else (
-    echo Downloading FFmpeg...
-    python scripts\download_ffmpeg.py
-    
-    if !errorlevel! neq 0 (
-        echo WARNING: Could not download FFmpeg automatically.
-        echo The application will still work if FFmpeg is installed system-wide.
-        echo.
-        echo To install FFmpeg manually:
-        echo   1. Run: winget install ffmpeg
-        echo   OR
-        echo   2. Download from: https://ffmpeg.org/download.html
-        echo.
+    if exist "ffmpeg.exe" (
+        echo [OK] Local ffmpeg.exe found
     ) else (
-        echo [OK] FFmpeg downloaded.
+        if exist "scripts\download_ffmpeg.py" (
+            echo Downloading FFmpeg...
+            python scripts\download_ffmpeg.py >> "%LOG_FILE%" 2>&1
+            if not !errorlevel! == 0 (
+                echo [WARNING] FFmpeg download failed
+                echo You may need to install it manually: winget install ffmpeg
+            ) else (
+                echo [OK] FFmpeg downloaded
+            )
+        ) else (
+            echo [WARNING] FFmpeg not found
+            echo Install manually: winget install ffmpeg
+        )
     )
 )
 echo.
 
-REM ============================================================
-REM LAUNCH APPLICATION
-REM ============================================================
-
-echo ============================================================
-echo           Setup Complete! Launching Application...
-echo ============================================================
-echo.
-echo TIP: Next time, you can use run.bat for faster startup!
+REM Launch application
+echo [5/5] Launching application...
 echo.
 
-timeout /t 2 >nul
+if not exist "captioner_compact.py" (
+    echo [ERROR] captioner_compact.py not found!
+    echo Make sure you have all files from GitHub.
+    echo.
+    pause
+    exit /b 1
+)
 
-REM Launch the application
+echo ============================================================
+echo           Setup Complete! Starting Video Captioner...
+echo ============================================================
+echo.
+echo TIP: Next time, use run.bat for faster startup!
+echo.
+
 python captioner_compact.py
 
-REM If application exits with error
 if %errorlevel% neq 0 (
     echo.
     echo ============================================================
-    echo Application closed with an error.
+    echo Application closed with an error
+    echo ============================================================
     echo.
     echo Troubleshooting:
-    echo   1. Check that Visual C++ Redistributable is installed
-    echo      Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
-    echo.
-    echo   2. Check the log file:
-    echo      %%TEMP%%\videocaptioner_debug.log
-    echo.
-    echo   3. Make sure all files were downloaded from GitHub
-    echo ============================================================
+    echo  1. Install Visual C++ Redistributable:
+    echo     https://aka.ms/vs/17/release/vc_redist.x64.exe
+    echo  2. Check log: %%TEMP%%\videocaptioner_debug.log
+    echo  3. Check setup log: %LOG_FILE%
     echo.
     pause
 )

@@ -1,12 +1,18 @@
 # Requirements for NewCaptionApp - Video Captioner
 # Install with: pip install -r requirements.txt
 
+# IMPORTANT: Requires Python 3.11 or 3.12
+# - Python 3.13+ is too new (PyTorch 2.8.0 wheels not available)
+# - Python 3.10 or older is too old
+# Recommended: Python 3.12.x
+
 # GUI Framework
 PyQt5>=5.15.0,<6.0.0
 
 # Deep Learning Framework
-# Pinned to 2.8.0 to avoid WinError 1114 bug in PyTorch 2.9.0 on Windows
+# Pinned to 2.8.0 to avoid WinError 1114 bug in PyTorch 2.9.0+ on Windows
 # See: https://github.com/pytorch/pytorch/issues/166628
+# PyTorch 2.8.0 is compatible with Python 3.8-3.12 only
 torch==2.8.0
 torchvision==0.23.0
 torchaudio==2.8.0
