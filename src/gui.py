@@ -19,6 +19,11 @@ from src.utils import ProcessingStats, SubtitleFormatter, VocabularyCorrector
 
 logger = logging.getLogger(__name__)
 
+# ── Custom fine-tuned model (auto-detected at startup) ─────────────────────────
+# This path is populated by scripts/convert_model.py after fine-tuning.
+_CUSTOM_MODEL_PATH  = str(Path(__file__).parent.parent / "models" / "unity-whisper-small-ct2")
+_CUSTOM_MODEL_LABEL = "✦ Unity Whisper — Small (Custom)"
+
 class BatchWorker(QObject):
     """Batch processing worker"""
     
@@ -185,8 +190,29 @@ class MainWindow(QMainWindow):
         
         config_layout.addWidget(QLabel("AI Model:"), 0, 0)
         self.model_combo = QComboBox()
-        models = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3"]
-        self.model_combo.addItems(models)
+        # Map display label → model id (path or name passed to faster-whisper)
+        self._model_id_map: Dict[str, str] = {
+            "tiny":     "tiny",
+            "base":     "base",
+            "small":    "small",
+            "medium":   "medium",
+            "large":    "large",
+            "large-v2": "large-v2",
+            "large-v3": "large-v3",
+        }
+        self.model_combo.addItems(list(self._model_id_map.keys()))
+
+        # Auto-detect fine-tuned Unity model — only show if conversion is complete
+        if Path(_CUSTOM_MODEL_PATH).is_dir() and any(Path(_CUSTOM_MODEL_PATH).iterdir()):
+            self.model_combo.insertSeparator(self.model_combo.count())
+            self.model_combo.addItem(_CUSTOM_MODEL_LABEL)
+            self._model_id_map[_CUSTOM_MODEL_LABEL] = _CUSTOM_MODEL_PATH
+            self.model_combo.setToolTip(
+                f"'{_CUSTOM_MODEL_LABEL}' uses your fine-tuned Unity vocabulary model.\n"
+                f"Location: {_CUSTOM_MODEL_PATH}"
+            )
+            logger.info(f"✦ Custom Unity model detected: {_CUSTOM_MODEL_PATH}")
+
         self.model_combo.setCurrentText("small")
         config_layout.addWidget(self.model_combo, 0, 1)
         
@@ -419,8 +445,13 @@ class MainWindow(QMainWindow):
                 'title_case_fallback': self.title_case_fallback_check.isChecked()
             }
         
+        # Resolve display label → actual model id / local path
+        selected_label = self.model_combo.currentText()
+        model_id = self._model_id_map.get(selected_label, selected_label)
+        logger.info(f"🤖 Selected model: {selected_label!r} → {model_id!r}")
+
         self.thread.started.connect(lambda: self.worker.transcribe_batch(
-            self.file_paths, self.model_combo.currentText(), self.timestamps_check.isChecked(),
+            self.file_paths, model_id, self.timestamps_check.isChecked(),
             84, context_prompt if context_prompt else None, vocab_settings
         ))
         

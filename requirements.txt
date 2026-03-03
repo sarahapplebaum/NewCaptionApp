@@ -36,3 +36,37 @@ faster-whisper>=1.0.0
 # - macOS: brew install ffmpeg
 # - Ubuntu/Debian: sudo apt-get install ffmpeg
 # - Windows: Download from https://ffmpeg.org/download.html
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TRAINING DEPENDENCIES (fine-tuning only — not required at runtime)
+# Install with: pip install -r requirements.txt --extra-index-url ...
+# Or install the training group separately:
+#   pip install transformers datasets evaluate jiwer accelerate peft soundfile tensorboard ctranslate2
+# ──────────────────────────────────────────────────────────────────────────────
+
+# HuggingFace Transformers — WhisperForConditionalGeneration, Seq2SeqTrainer
+transformers>=4.36.0
+
+# HuggingFace Datasets — AudioFolder loading, push_to_hub
+datasets>=2.16.0
+
+# HuggingFace Evaluate + jiwer — Word Error Rate (WER) metric for training eval
+evaluate>=0.4.0
+jiwer>=3.0.0
+
+# Accelerate — backend-agnostic training loop (handles MPS/CUDA/CPU automatically)
+accelerate>=0.26.0
+
+# PEFT — Parameter-Efficient Fine-Tuning (LoRA implementation)
+peft>=0.8.0
+
+# SoundFile — audio file I/O used by datasets when decoding WAV clips
+soundfile>=0.12.0
+
+# TensorBoard — training loss and WER visualisation
+# Launch with: tensorboard --logdir ./unity-whisper-small/runs
+tensorboard>=2.14.0
+
+# CTranslate2 — post-training model conversion (HuggingFace → faster-whisper format)
+# Provides the `ct2-transformers-converter` CLI command used by convert_model.py
+ctranslate2>=4.0.0
